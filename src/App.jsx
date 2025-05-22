@@ -461,14 +461,14 @@ function GameGraph() {
       return CHART_HEIGHT - (((v - ruggedMin) / range) * (CHART_HEIGHT - 40) + 20);
     }
     
-    // Normal case - MASSIVELY strengthened safeguards
+    // Normal case - simplified normalization
     const range = visibleMaxValue - MIN_VALUE;
-    const CRITICAL_MIN_RANGE = 2.0; // Must match the ABSOLUTE_MIN_RANGE above
+    const CRITICAL_MIN_RANGE = 1.0; // Reduced to allow natural scaling in 1-5x range
     
-    // EMERGENCY FALLBACK: If range is dangerously small, force safe positioning
+    // Only use emergency fallback for truly problematic ranges
     if (range < CRITICAL_MIN_RANGE) {
-      console.warn(`Chart condensing detected! Range: ${range}, forcing safe positioning`);
-      // Use a safe range and position values accordingly
+      console.warn(`Chart condensing detected! Range: ${range}, using fallback positioning`);
+      // Use a minimal safe range 
       const safeRange = CRITICAL_MIN_RANGE;
       const safeMaxValue = MIN_VALUE + safeRange;
       const normalizedValue = Math.max(MIN_VALUE, Math.min(v, safeMaxValue));
@@ -508,7 +508,7 @@ function GameGraph() {
     
     // More aggressive bounds checking
     // Keep values in a more reasonable range for visualization
-    const maxAllowedMultiplier = Math.max(visibleMaxValue * 0.8, 20.0); // Cap at current view * 0.8 or 20x
+    const maxAllowedMultiplier = Math.max(visibleMaxValue * 0.8, 100.0); // Cap at current view * 0.8 or 100x
     newPrice = Math.max(MIN_VALUE + 0.1, Math.min(maxAllowedMultiplier, newPrice));
     
     return parseFloat(newPrice.toFixed(4));
@@ -970,9 +970,9 @@ function GameGraph() {
       2.0
     );
     
-    // STRENGTHENED: Much more aggressive minimum range enforcement
-    const ABSOLUTE_MIN_RANGE = 2.0; // Minimum range of 2.0x (e.g., 0.3 to 2.3)
-    const minVisible = Math.max(MIN_VALUE + ABSOLUTE_MIN_RANGE, 2.5); // Much higher minimum
+    // Simplified scaling logic - only enforce truly necessary minimums
+    const MINIMUM_RANGE = 1.5; // Minimum range of 1.5x (reasonable for 1-5x ranges)
+    const ABSOLUTE_MIN_VISIBLE = 1.8; // Only enforce this if we're going too small
     
     // Cancel any ongoing animation and grid update timeout
     if (scalingAnimationRef.current) {
@@ -985,40 +985,34 @@ function GameGraph() {
     }
     
     // Animate both scaling up and down for smoother transitions
-    if (Math.abs(idealMaxValue - visibleMaxValue) > 0.01) { // Only animate if significant difference
+    if (Math.abs(idealMaxValue - visibleMaxValue) > 0.05) { // Increased threshold to reduce unnecessary animations
       // Store current grid lines as stable during scaling
       setStableGridLines(generateGridLines(visibleMaxValue));
       setIsScaling(true);
       
       const startValue = visibleMaxValue;
-      const endValue = Math.max(idealMaxValue, minVisible);
       
-      // TRIPLE SAFEGUARD: Multiple layers of range validation
-      const range = endValue - MIN_VALUE;
-      let finalEndValue = endValue;
+      // Simplified logic: Use ideal value with minimal safety checks
+      let finalEndValue = idealMaxValue;
       
-      // First safeguard: Ensure minimum range
-      if (range < ABSOLUTE_MIN_RANGE) {
-        finalEndValue = MIN_VALUE + ABSOLUTE_MIN_RANGE;
+      // Only enforce minimum range if we're getting dangerously small
+      const range = finalEndValue - MIN_VALUE;
+      if (range < MINIMUM_RANGE) {
+        finalEndValue = MIN_VALUE + MINIMUM_RANGE;
       }
       
-      // Second safeguard: Never allow below absolute minimum
-      if (finalEndValue < minVisible) {
-        finalEndValue = minVisible;
+      // Only prevent extreme downscaling (not 80%, but 50% to allow natural movement)
+      if (finalEndValue < visibleMaxValue * 0.5 && visibleMaxValue > ABSOLUTE_MIN_VISIBLE) {
+        finalEndValue = Math.max(finalEndValue, visibleMaxValue * 0.6);
       }
       
-      // Third safeguard: Always maintain reasonable scaling bounds
-      const currentRange = visibleMaxValue - MIN_VALUE;
-      if (currentRange >= ABSOLUTE_MIN_RANGE && finalEndValue < visibleMaxValue * 0.8) {
-        // Prevent dramatic downscaling that could cause condensing
-        finalEndValue = Math.max(finalEndValue, visibleMaxValue * 0.8);
+      // Absolute minimum only for edge cases
+      if (finalEndValue < ABSOLUTE_MIN_VISIBLE) {
+        finalEndValue = Math.max(finalEndValue, ABSOLUTE_MIN_VISIBLE);
       }
       
       const startTime = performance.now();
-      
-      // Use smooth easing for both directions  
-      const isScalingUp = finalEndValue > startValue;
-      const duration = 500; // Consistent duration
+      const duration = 400; // Faster animation
       
       const animate = (currentTime) => {
         const elapsed = currentTime - startTime;
@@ -1029,11 +1023,11 @@ function GameGraph() {
         
         const newValue = startValue + (finalEndValue - startValue) * easedProgress;
         
-        // FINAL SAFEGUARD: Validate during animation
+        // Single simple validation during animation
         const animationRange = newValue - MIN_VALUE;
-        const safeNewValue = animationRange < ABSOLUTE_MIN_RANGE ? MIN_VALUE + ABSOLUTE_MIN_RANGE : newValue;
+        const safeNewValue = animationRange < MINIMUM_RANGE ? MIN_VALUE + MINIMUM_RANGE : newValue;
         
-        setVisibleMaxValue(Math.max(safeNewValue, minVisible));
+        setVisibleMaxValue(Math.max(safeNewValue, ABSOLUTE_MIN_VISIBLE));
         
         if (progress < 1) {
           scalingAnimationRef.current = requestAnimationFrame(animate);
@@ -1044,7 +1038,7 @@ function GameGraph() {
           gridUpdateTimeoutRef.current = setTimeout(() => {
             setIsScaling(false);
             // Grid lines will update on next render cycle
-          }, 50); // Small delay to ensure smooth transition
+          }, 30); // Reduced delay
         }
       };
       scalingAnimationRef.current = requestAnimationFrame(animate);
