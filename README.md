@@ -14,3 +14,4 @@ If you are developing a production application, we recommend using TypeScript wi
 # rugs.fun-test-v2
 # rugs.fun-test
 # rugs.fun-test
+# rugs.fun-final
