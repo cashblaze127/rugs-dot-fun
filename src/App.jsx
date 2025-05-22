@@ -29,7 +29,18 @@ const mockAddresses = [
   "0x7890123456789012345678901234567890123456",
   "0x8901234567890123456789012345678901234567",
   "0x9012345678901234567890123456789012345678",
-  "0x0123456789012345678901234567890123456789"
+  "0x0123456789012345678901234567890123456789",
+  // New mock addresses
+  "0xA123456789012345678901234567890123456789",
+  "0xB234567890123456789012345678901234567890",
+  "0xC345678901234567890123456789012345678901",
+  "0xD456789012345678901234567890123456789012",
+  "0xE567890123456789012345678901234567890123",
+  "0xF678901234567890123456789012345678901234",
+  "0xA789012345678901234567890123456789012345",
+  "0xB890123456789012345678901234567890123456",
+  "0xC901234567890123456789012345678901234567",
+  "0xD012345678901234567890123456789012345678"
 ];
 
 const mockPlayers = [
@@ -43,6 +54,17 @@ const mockPlayers = [
   { name: "Oreoz", address: mockAddresses[7], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
   { name: "Romms", address: mockAddresses[8], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
   { name: "Gob", address: mockAddresses[9], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  // New mock players
+  { name: "Frodo", address: mockAddresses[10], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "Samwise", address: mockAddresses[11], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "Gandalf", address: mockAddresses[12], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "Legolas", address: mockAddresses[13], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "Aragorn", address: mockAddresses[14], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "Boromir", address: mockAddresses[15], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "Gimli", address: mockAddresses[16], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "Sauron", address: mockAddresses[17], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "Saruman", address: mockAddresses[18], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "Gollum", address: mockAddresses[19], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
 ];
 
 const CHART_HEIGHT = 400;
@@ -172,30 +194,36 @@ function PlayerBox({ player, index }) {
   const profit = player.profit.replace("+", "");
   const blockieImage = createBlockies(player.address);
   
+  // Responsive adjustments for leaderboard player row on mobile
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+  
   return (
-    <div className="player-row leaderboard-gradient-border">
-      <div className="avatar-container">
+    <div className="player-row" style={{ background: 'none', border: 'none', boxShadow: 'none', minHeight: isMobile ? '15px' : '19px', padding: isMobile ? '1px 4px' : '2px 6px', fontSize: isMobile ? '10px' : '12px' }}>
+      <div className="avatar-container" style={{ width: isMobile ? '12px' : '16px', height: isMobile ? '12px' : '16px', minWidth: isMobile ? '12px' : '16px', minHeight: isMobile ? '12px' : '16px' }}>
         <img 
           src={blockieImage} 
           alt="Player Avatar" 
           className="player-avatar-blockie"
+          style={{ width: isMobile ? '12px' : '16px', height: isMobile ? '12px' : '16px' }}
         />
       </div>
-      <span className="player-name">{player.name}</span>
-      <div className="player-stats">
-        <span className="player-profit green-glow">
+      <span className="player-name" style={{ fontSize: isMobile ? '10px' : '12px' }}>{player.name}</span>
+      <div className="player-stats" style={{ gap: isMobile ? '5px' : '8px' }}>
+        <span style={{ fontSize: isMobile ? '10px' : '12px', color: '#00ff00', fontWeight: 600 }}>
           {player.profit.startsWith("+") && (
             <img 
               src={player.tokenType === 'solana' ? solanaLogo : rugsLogo} 
               alt={player.tokenType === 'solana' ? 'Solana' : 'Rugs'} 
-              width="14" 
-              height="14" 
+              width={isMobile ? '10' : '12'} 
+              height={isMobile ? '10' : '12'} 
               style={{ marginRight: '2px', verticalAlign: 'middle' }}
             />
           )}
           {profit}
         </span>
-        <span className="player-percent green-glow">{player.percent}</span>
+        <span style={{ fontSize: isMobile ? '9px' : '11px', color: '#00ff00', fontWeight: 600 }}>
+          {player.percent}
+        </span>
       </div>
     </div>
   );
@@ -363,6 +391,7 @@ function GameGraph() {
   const lastTradeTimeRef = useRef(0);
   const fadeTimeoutRef = useRef(null);
   const rugTimerRef = useRef(null);
+  const scalingAnimationRef = useRef(null);
   
   // Track if game is rugged to prevent any more updates
   const isRugged = gameState === 'rugged';
@@ -398,12 +427,12 @@ function GameGraph() {
   const norm = v => {
     // For rugged state, ensure we can see values down to zero
     if (gameState === 'rugged') {
-      // When rugged, use 0 as the minimum to see the full crash
       const ruggedMin = 0;
+      if (visibleMaxValue - ruggedMin < 0.0001) return CHART_HEIGHT - 20;
       return CHART_HEIGHT - (((v - ruggedMin) / (visibleMaxValue - ruggedMin)) * (CHART_HEIGHT - 40) + 20);
     }
-    
     // Normal case
+    if (visibleMaxValue - MIN_VALUE < 0.0001) return CHART_HEIGHT - 20;
     return CHART_HEIGHT - (((v - MIN_VALUE) / (visibleMaxValue - MIN_VALUE)) * (CHART_HEIGHT - 40) + 20);
   };
   
@@ -862,92 +891,68 @@ function GameGraph() {
   
   // Update the visible range when the multiplier changes significantly
   useEffect(() => {
-    // Store the previous multiplier for animation reference
     previousMultiplierRef.current = currentMultiplier;
 
-    // If entering presale, reset chart to initial state
     if (gameState === 'presale') {
       setVisibleMaxValue(2.0);
       setDisplayMultiplier(1.0);
       return;
     }
 
-    // If rugged, ensure we use an appropriate scale
     if (gameState === 'rugged') {
-      // Find the highest value in the chart data before the rug
-      const highestValue = displayedChartData.reduce((max, candle) => 
-        Math.max(max, candle.high), 2.0);
-      
-      // Use a scale that ensures the full drop is visible
+      const highestValue = displayedChartData.reduce((max, candle) => Math.max(max, candle.high), 2.0);
       setVisibleMaxValue(Math.max(highestValue * 1.1, 2.0));
       return;
     }
-    
-    // Get the highest value in current chart data to ensure everything fits
-    const highestValueInChartData = chartData.reduce((max, candle) => 
-      Math.max(max, candle.high), currentMultiplier);
-    
-    // Calculate the current candle's range and position
+
+    const highestValueInChartData = chartData.reduce((max, candle) => Math.max(max, candle.high), currentMultiplier);
     const currentCandle = chartData[chartData.length - 1];
     const currentCandleRange = currentCandle ? (currentCandle.high - currentCandle.low) : 0;
     const currentCandleHigh = currentCandle ? currentCandle.high : currentMultiplier;
-    
-    // Calculate the percentage of the current visible range that the candle takes up
     const candleRangePercentage = currentCandleRange / visibleMaxValue;
-    
-    // Calculate how close the candle's high is to the top of the visible range
     const distanceToTop = visibleMaxValue - currentCandleHigh;
     const topMarginPercentage = distanceToTop / visibleMaxValue;
-    
-    // Always ensure the current multiplier and highest candle are within the visible range
-    // Add more headroom for large candles and ensure minimum top margin
-    const MIN_TOP_MARGIN_PERCENTAGE = 0.15; // Always keep 15% margin at the top
+    const MIN_TOP_MARGIN_PERCENTAGE = 0.15;
     const idealMaxValue = Math.max(
-      highestValueInChartData * 1.4, // Increased from 1.3 to 1.4 for more headroom
+      highestValueInChartData * 1.4,
       currentMultiplier * 1.3,
-      currentCandleHigh / (1 - MIN_TOP_MARGIN_PERCENTAGE), // Ensure minimum top margin
+      currentCandleHigh / (1 - MIN_TOP_MARGIN_PERCENTAGE),
       2.0
     );
+    const minVisible = MIN_VALUE + 0.5;
     
-    // Make range adjustments more responsive for large candles
-    const shouldScale = 
-      highestValueInChartData >= visibleMaxValue || 
-      Math.abs(idealMaxValue - visibleMaxValue) / visibleMaxValue > 0.15 ||
-      candleRangePercentage > 0.35 || // Reduced from 0.4 to 0.35 to scale earlier
-      topMarginPercentage < MIN_TOP_MARGIN_PERCENTAGE; // Scale if we're too close to the top
+    // Cancel any ongoing animation
+    if (scalingAnimationRef.current) {
+      cancelAnimationFrame(scalingAnimationRef.current);
+      scalingAnimationRef.current = null;
+    }
     
-    if (shouldScale) {
-      // Use requestAnimationFrame for smooth transitions
+    // Only animate if scaling up
+    if (idealMaxValue > visibleMaxValue) {
       const startValue = visibleMaxValue;
-      const endValue = highestValueInChartData >= visibleMaxValue 
-        ? idealMaxValue 
-        : visibleMaxValue + (idealMaxValue - visibleMaxValue) * 0.3;
-      
+      const endValue = idealMaxValue;
       const startTime = performance.now();
-      // Faster transition for large candles or when close to top
-      const duration = (candleRangePercentage > 0.35 || topMarginPercentage < MIN_TOP_MARGIN_PERCENTAGE) 
-        ? 250 // Even faster (250ms) for large candles or when close to top
-        : 500; // Normal 500ms for regular scaling
-      
+      const duration = 500;
       const animate = (currentTime) => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        
-        // Easing function for smooth animation
         const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
         const easedProgress = easeOutCubic(progress);
-        
-        const newValue = startValue + (endValue - startValue) * easedProgress;
+        let newValue = startValue + (endValue - startValue) * easedProgress;
+        newValue = Math.max(newValue, minVisible);
         setVisibleMaxValue(newValue);
-        
         if (progress < 1) {
-          requestAnimationFrame(animate);
+          scalingAnimationRef.current = requestAnimationFrame(animate);
+        } else {
+          scalingAnimationRef.current = null;
         }
       };
-      
-      requestAnimationFrame(animate);
+      scalingAnimationRef.current = requestAnimationFrame(animate);
+    } else if (idealMaxValue < visibleMaxValue) {
+      // Snap down immediately
+      setVisibleMaxValue(Math.max(idealMaxValue, minVisible));
     }
-  }, [currentMultiplier, visibleMaxValue, chartData, gameState, displayedChartData]);
+  }, [currentMultiplier, chartData, gameState, displayedChartData]);
 
   // Update the active candle animation to only handle the "bounce" effect
   useEffect(() => {
@@ -1233,7 +1238,8 @@ function GameGraph() {
                     </linearGradient>
                     <linearGradient id="leaderboard-fade-bottom" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#000" stopOpacity="0" />
-                      <stop offset="85%" stopColor="#000" stopOpacity="0" />
+                      <stop offset="60%" stopColor="#000" stopOpacity="0.85" />
+                      <stop offset="85%" stopColor="#000" stopOpacity="0.98" />
                       <stop offset="100%" stopColor="#000" stopOpacity="1" />
                     </linearGradient>
                     {/* Rainbow gradient for price indicator */}
@@ -1290,6 +1296,16 @@ function GameGraph() {
                       <feDisplacementMap in="red-blur" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" result="displaced" />
                       <feComposite in="displaced" in2="SourceGraphic" operator="out" />
                     </filter>
+                    {/* Candle fade-out mask for left edge */}
+                    <linearGradient id="fade-mask-gradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="white" stopOpacity="0" />
+                      <stop offset={windowWidth <= 640 ? "8%" : "5%"} stopColor="white" stopOpacity="0" />
+                      <stop offset={windowWidth <= 640 ? "15%" : "10%"} stopColor="white" stopOpacity="1" />
+                      <stop offset="100%" stopColor="white" stopOpacity="1" />
+                    </linearGradient>
+                    <mask id="fade-mask">
+                      <rect x="0" y="0" width="100%" height="100%" fill="url(#fade-mask-gradient)" />
+                    </mask>
                   </defs>
                   
                   {/* First draw the grid lines */}
@@ -1321,127 +1337,134 @@ function GameGraph() {
                   </TransitionGroup>
                   
                   {/* Then draw the candles */}
-                  {displayedChartData.length > 0 && (isTestRunning || isRugged) && displayedChartData.map((candle, i) => {
-                    const isLatestCandle = i === displayedChartData.length - 1;
-                    const prev = i > 0 ? displayedChartData[i - 1] : candle;
-                    const up = candle.close >= candle.open;
-                    const isRugCandle = candle.isRugCandle || (gameState === 'rugged' && isLatestCandle);
-                    
-                    // For rug candles, always use red gradient regardless of open/close values
-                    const gradientId = isRugCandle ? "red-gradient" : (up ? "blue-gradient" : "red-gradient");
-                    
-                    // Calculate responsive values based on window width
-                    const isMobile = windowWidth <= 640;
-                    const isSmall = windowWidth <= 900 && windowWidth > 640;
-                    
-                    // Get container dimensions
-                    const containerWidth = chartContainerRef.current 
-                      ? chartContainerRef.current.clientWidth 
-                      : CHART_WIDTH;
-                    
-                    // Reserve space for leaderboard based on container size
-                    // Be extremely aggressive with the right margin to ensure candles are never cut off
-                    const leaderboardWidth = isMobile ? 160 : (isSmall ? 240 : 320);
-                    const rightMargin = containerWidth * 0.25 + leaderboardWidth * 0.1;
-                    
-                    // Calculate candle dimensions
-                    const maxVisibleCandles = 15;
-                    const candleWidthRatio = windowWidth <= 640 ? 0.6 : 1;
-                    const responsiveCandleWidth = Math.max(
-                      4, 
-                      Math.min(CANDLE_WIDTH * candleWidthRatio, ((containerWidth - rightMargin) / maxVisibleCandles) * 0.8)
-                    );
-                    
-                    // Calculate gap between candles
-                    const gap = Math.max(4, Math.min(CANDLE_GAP, containerWidth / 200)); // Adjusted divisor from 320 to 200 for more consistent gaps
-                    
-                    // Position the latest candle with a fixed offset from the right edge
-                    const distanceFromEnd = displayedChartData.length - 1 - i;
-                    
-                    const availableWidth = containerWidth - rightMargin;
-                    
-                    // Calculate candle positions from right to left
-                    // Latest candle is positioned with safe margin from the right edge
-                    const SAFE_MARGIN = containerWidth * 0.09;  // Further reduced margin to position candle closer to leaderboard
-                    const latestCandleX = availableWidth - SAFE_MARGIN;
-                    const x = latestCandleX - (distanceFromEnd * (responsiveCandleWidth + gap));
-                    
-                    // Calculate candle body dimensions - using animated price for the active candle
-                    let candleClose = candle.close;
-                    let candleHigh = candle.high;
-                    let candleLow = candle.low;
-                    
-                    // For the latest candle, we want to ensure smooth transitions
-                    if (isLatestCandle && gameState === 'active') {
-                      if (animatedPrice !== null) {
-                        candleClose = animatedPrice;
-                        // Update high/low only if the new price exceeds current range
-                        if (animatedPrice > candleHigh) {
-                          candleHigh = animatedPrice;
-                        }
-                        if (animatedPrice < candleLow) {
-                          candleLow = animatedPrice;
-                        }
-                      }
-                    }
-                    
-                    const bodyTop = norm(Math.max(candle.open, candleClose));
-                    const bodyBottom = norm(Math.min(candle.open, candleClose));
-                    const bodyHeight = Math.max(bodyBottom - bodyTop, 2); // Ensure minimum height
-                    
-                    // Calculate wick dimensions - using the updated high/low values
-                    const wickTop = norm(candleHigh);
-                    const wickBottom = norm(candleLow);
-                    
-                    // Only render candles that are in the visible area
-                    // Allow candles to run off left side but ensure visible on right
-                    if (x > containerWidth) return null;
-                    
-                    // Hide candles in presale mode
-                    if (gameState === 'presale') return null;
-                    
-                    return (
-                      <g key={`candle-${i}`} className={isRugCandle ? 'rugged-candle' : ''}>
-                        {/* Wick */}
-                        <line
-                          x1={x + responsiveCandleWidth / 2}
-                          y1={wickTop}
-                          x2={x + responsiveCandleWidth / 2}
-                          y2={wickBottom}
-                          stroke={isRugCandle ? "#FF3300" : (up ? "#00FF00" : "#FF0000")}
-                          strokeWidth={isRugCandle ? (isMobile ? 3 : 4) : (isMobile ? 1 : 2)} // Thicker for rug candle
-                        />
+                  {displayedChartData.length > 0 && (isTestRunning || isRugged) && (
+                    <g mask="url(#fade-mask)">
+                      {displayedChartData.map((candle, i) => {
+                        const isLatestCandle = i === displayedChartData.length - 1;
+                        const prev = i > 0 ? displayedChartData[i - 1] : candle;
+                        const up = candle.close >= candle.open;
+                        const isRugCandle = candle.isRugCandle || (gameState === 'rugged' && isLatestCandle);
                         
-                        {/* Candle body */}
-                        <rect
-                          x={x}
-                          y={bodyTop}
-                          width={responsiveCandleWidth}
-                          height={bodyHeight}
-                          fill={`url(#${isRugCandle ? "red-gradient" : (up ? "blue-gradient" : "red-gradient")})`}
-                          style={{
-                            filter: isRugCandle 
-                              ? "drop-shadow(0 0 8px #FF0000) drop-shadow(0 0 12px #FF3300)" // Keep fire glow for rug candle only
-                              : "none" // Remove glow for normal candles
-                          }}
-                        />
+                        // For rug candles, always use red gradient regardless of open/close values
+                        const gradientId = isRugCandle ? "red-gradient" : (up ? "blue-gradient" : "red-gradient");
                         
-                        {/* Add explosion effect for the rug candle */}
-                        {isRugCandle && (
-                          <circle
-                            cx={x + responsiveCandleWidth / 2}
-                            cy={bodyBottom}
-                            r={responsiveCandleWidth * 2}
-                            fill="url(#red-gradient)"
-                            opacity={0.4}
-                            style={{
-                              filter: "drop-shadow(0 0 10px #FF0000)"
-                            }}
-                          />
-                        )}
-                      </g>
-                    );
-                  })}
+                        // Calculate responsive values based on window width
+                        const isMobile = windowWidth <= 640;
+                        const isSmall = windowWidth <= 900 && windowWidth > 640;
+                        
+                        // Get container dimensions
+                        const containerWidth = chartContainerRef.current 
+                          ? chartContainerRef.current.clientWidth 
+                          : CHART_WIDTH;
+                        
+                        // Reserve space for leaderboard based on container size
+                        // Be extremely aggressive with the right margin to ensure candles are never cut off
+                        const leaderboardWidth = isMobile ? 160 : (isSmall ? 240 : 320);
+                        const rightMargin = containerWidth * 0.25 + leaderboardWidth * 0.1;
+                        
+                        // Calculate candle dimensions
+                        const maxVisibleCandles = 15;
+                        const candleWidthRatio = windowWidth <= 640 ? 0.6 : 1;
+                        const responsiveCandleWidth = Math.max(
+                          4, 
+                          Math.min(CANDLE_WIDTH * candleWidthRatio, ((containerWidth - rightMargin) / maxVisibleCandles) * 0.8)
+                        );
+                        
+                        // Calculate gap between candles
+                        const gap = Math.max(4, Math.min(CANDLE_GAP, containerWidth / 200)); // Adjusted divisor from 320 to 200 for more consistent gaps
+                        
+                        // Position the latest candle with a fixed offset from the right edge
+                        const distanceFromEnd = displayedChartData.length - 1 - i;
+                        
+                        const availableWidth = containerWidth - rightMargin;
+                        
+                        // Calculate candle positions from right to left
+                        // Latest candle is positioned with safe margin from the right edge
+                        const SAFE_MARGIN = containerWidth * 0.09;  // Further reduced margin to position candle closer to leaderboard
+                        const latestCandleX = availableWidth - SAFE_MARGIN;
+                        const x = latestCandleX - (distanceFromEnd * (responsiveCandleWidth + gap));
+                        
+                        // Calculate candle body dimensions - using animated price for the active candle
+                        let candleClose = candle.close;
+                        let candleHigh = candle.high;
+                        let candleLow = candle.low;
+                        
+                        // For the latest candle, we want to ensure smooth transitions
+                        if (isLatestCandle && gameState === 'active') {
+                          if (animatedPrice !== null) {
+                            candleClose = animatedPrice;
+                            // Update high/low only if the new price exceeds current range
+                            if (animatedPrice > candleHigh) {
+                              candleHigh = animatedPrice;
+                            }
+                            if (animatedPrice < candleLow) {
+                              candleLow = animatedPrice;
+                            }
+                          }
+                        }
+                        
+                        const bodyTop = norm(Math.max(candle.open, candleClose));
+                        const bodyBottom = norm(Math.min(candle.open, candleClose));
+                        const bodyHeight = Math.max(bodyBottom - bodyTop, 2); // Ensure minimum height
+                        
+                        // Calculate wick dimensions - using the updated high/low values
+                        const wickTop = norm(candleHigh);
+                        const wickBottom = norm(candleLow);
+                        
+                        // Only render candles that are in the visible area
+                        // Allow candles to run off left side but ensure visible on right
+                        if (x > containerWidth) return null;
+                        
+                        // Hide candles in presale mode
+                        if (gameState === 'presale') return null;
+                        
+                        return (
+                          <g
+                            key={`candle-${i}`}
+                            className={isRugCandle ? 'rugged-candle' : ''}
+                          >
+                            {/* Wick */}
+                            <line
+                              x1={x + responsiveCandleWidth / 2}
+                              y1={wickTop}
+                              x2={x + responsiveCandleWidth / 2}
+                              y2={wickBottom}
+                              stroke={isRugCandle ? "#FF3300" : (up ? "#00FF00" : "#FF0000")}
+                              strokeWidth={isRugCandle ? (isMobile ? 3 : 4) : (isMobile ? 1 : 2)} // Thicker for rug candle
+                            />
+                            
+                            {/* Candle body */}
+                            <rect
+                              x={x}
+                              y={bodyTop}
+                              width={responsiveCandleWidth}
+                              height={bodyHeight}
+                              fill={`url(#${isRugCandle ? "red-gradient" : (up ? "blue-gradient" : "red-gradient")})`}
+                              style={{
+                                filter: isRugCandle 
+                                  ? "drop-shadow(0 0 8px #FF0000) drop-shadow(0 0 12px #FF3300)" // Keep fire glow for rug candle only
+                                  : "none" // Remove glow for normal candles
+                              }}
+                            />
+                            
+                            {/* Add explosion effect for the rug candle */}
+                            {isRugCandle && (
+                              <circle
+                                cx={x + responsiveCandleWidth / 2}
+                                cy={bodyBottom}
+                                r={responsiveCandleWidth * 2}
+                                fill="url(#red-gradient)"
+                                opacity={0.4}
+                                style={{
+                                  filter: "drop-shadow(0 0 10px #FF0000)"
+                                }}
+                              />
+                            )}
+                          </g>
+                        );
+                      })}
+                    </g>
+                  )}
                   
                   {/* Draw the indicator lines on top of candles */}
                   {displayedChartData.length > 0 && isTestRunning && gameState !== 'presale' && (
@@ -1573,11 +1596,10 @@ function GameGraph() {
                             fill="#FFFFFF"
                             fontSize={14}
                             fontWeight="600"
-                            style={{ 
-                              textShadow: "0 0 8px #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
-                              filter: "drop-shadow(0 0 2px rgba(0,0,0,0.9))",
-                              transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1)'
+                            style={{
+                              transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), y 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
                             }}
+                            className="grid-fade-line grid-line-label"
                           >
                             {y.toFixed(1)}x
                           </text>
@@ -1662,13 +1684,30 @@ function GameGraph() {
             
             {/* Player list with fade effects */}
             <div className="player-list-container" style={{ position: 'relative', background: 'none', zIndex: 10 }}>
-              <div className="player-list-fade top"></div>
-              <div className="player-list">
+              <div
+                className="player-list"
+                style={{
+                  overflowY: 'auto',
+                  height: '100%',
+                }}
+              >
                 {mockPlayers.map((player, idx) => (
                   <PlayerBox key={idx} player={player} index={idx} />
                 ))}
               </div>
-              <div className="player-list-fade bottom"></div>
+              {/* Fade overlay absolutely positioned at the bottom of the container */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: '80px', // Increased height for smoother fade
+                  pointerEvents: 'none',
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 50%, #000 100%)',
+                  zIndex: 2,
+                }}
+              />
             </div>
           </div>
         </div>
