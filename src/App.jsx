@@ -89,53 +89,67 @@ const gridLineColors = [
 // Add a ref to store the last used grid step
 let lastGridStep = 1;
 
+// Helper function to reset grid system
+function resetGridSystem() {
+  lastGridStep = 1;
+}
+
 // Dynamic grid line generation based on the current visible range
 function generateGridLines(maxValue) {
   const min = MIN_VALUE;
-  const targetLines = 6;
-  const possibleSteps = [0.5, 1, 2, 5, 10, 20, 50];
+  const targetLines = 4; // Reduced for cleaner look
+  const possibleSteps = [0.5, 1, 2, 5, 10, 20, 50, 100];
   let step = lastGridStep;
 
-  // Find the best step, but add hysteresis: only switch if the new step is clearly better
+  // Calculate range and be more conservative
+  const range = maxValue - min;
+  const maxAllowedLines = range > 10 ? 4 : 5; // Even more conservative for large ranges
+  const minAllowedLines = 3;
+
+  // Find the best step with stronger hysteresis
   let bestStep = step;
   let bestCount = 1000;
+  
   for (let i = 0; i < possibleSteps.length; i++) {
     const s = possibleSteps[i];
     const start = Math.ceil(min / s) * s;
     const end = Math.floor(maxValue / s) * s;
     const count = Math.floor((end - start) / s) + 1;
-    if (count >= 4 && count <= 8) {
-      // Prefer not to switch step unless the current step is way out of range
+    
+    if (count >= minAllowedLines && count <= maxAllowedLines) {
+      // Strong preference to keep current step (hysteresis)
       if (s === step) {
         bestStep = s;
         bestCount = count;
         break;
       }
-      // Only switch if the current step would give too many or too few lines
-      if ((step < s && count < 4) || (step > s && count > 8)) {
-        bestStep = s;
-        bestCount = count;
-        break;
-      }
-      // Otherwise, keep the current step
-      if (Math.abs(count - targetLines) < Math.abs(bestCount - targetLines)) {
-        bestStep = s;
-        bestCount = count;
+      
+      // Only switch if current step is clearly problematic
+      const currentStepCount = Math.floor((Math.floor(maxValue / step) * step - Math.ceil(min / step) * step) / step) + 1;
+      if (currentStepCount > maxAllowedLines + 1 || currentStepCount < minAllowedLines) {
+        if (Math.abs(count - targetLines) < Math.abs(bestCount - targetLines)) {
+          bestStep = s;
+          bestCount = count;
+        }
       }
     }
   }
+  
   step = bestStep;
   lastGridStep = step;
 
   const start = Math.ceil(min / step) * step;
   const end = Math.floor(maxValue / step) * step;
   const multipliers = [];
+  
+  // Generate grid lines with strict limit
   for (let v = start; v <= end + 0.0001; v += step) {
+    if (multipliers.length >= 5) break; // Hard limit of 5 lines max
     multipliers.push(Number(v.toFixed(4)));
   }
 
-  // Always include 1.0x if it's in the visible range and not already present
-  if (1.0 >= start && 1.0 <= end && !multipliers.includes(1.0)) {
+  // Always include 1.0x if it's in range and we have space
+  if (1.0 >= start && 1.0 <= end && !multipliers.includes(1.0) && multipliers.length < 5) {
     multipliers.push(1.0);
     multipliers.sort((a, b) => a - b);
   }
@@ -379,6 +393,10 @@ function GameGraph() {
   const [gameState, setGameState] = useState('inactive'); // 'inactive', 'presale', 'active', 'rugged'
   const [countdownTime, setCountdownTime] = useState(5); // 5 seconds countdown
   
+  // Add scaling state to prevent grid line updates during scaling animation
+  const [isScaling, setIsScaling] = useState(false);
+  const [stableGridLines, setStableGridLines] = useState([]);
+  
   // Use refs to maintain references between renders
   const testIntervalRef = useRef(null);
   const animationFrameRef = useRef(null);
@@ -392,6 +410,7 @@ function GameGraph() {
   const fadeTimeoutRef = useRef(null);
   const rugTimerRef = useRef(null);
   const scalingAnimationRef = useRef(null);
+  const gridUpdateTimeoutRef = useRef(null);
   
   // Track if game is rugged to prevent any more updates
   const isRugged = gameState === 'rugged';
@@ -421,19 +440,44 @@ function GameGraph() {
   }, []);
   
   // Generate grid lines based on the current visible range
-  const gridLineMultipliers = generateGridLines(visibleMaxValue);
+  // Use stable grid lines during scaling to prevent flashing
+  const gridLineMultipliers = isScaling ? stableGridLines : generateGridLines(visibleMaxValue);
   
   // Normalize function for calculating y positions based on visible range
   const norm = v => {
+    // STRENGTHENED NORMALIZATION with multiple safeguards
+    
     // For rugged state, ensure we can see values down to zero
     if (gameState === 'rugged') {
       const ruggedMin = 0;
-      if (visibleMaxValue - ruggedMin < 0.0001) return CHART_HEIGHT - 20;
-      return CHART_HEIGHT - (((v - ruggedMin) / (visibleMaxValue - ruggedMin)) * (CHART_HEIGHT - 40) + 20);
+      const range = visibleMaxValue - ruggedMin;
+      // Much stronger minimum range enforcement for rugged state
+      if (range < 1.0) {
+        // Force reasonable positioning when range is too small
+        const safeRange = Math.max(range, 1.0);
+        const safeMaxValue = ruggedMin + safeRange;
+        return CHART_HEIGHT - (((v - ruggedMin) / safeRange) * (CHART_HEIGHT - 40) + 20);
+      }
+      return CHART_HEIGHT - (((v - ruggedMin) / range) * (CHART_HEIGHT - 40) + 20);
     }
-    // Normal case
-    if (visibleMaxValue - MIN_VALUE < 0.0001) return CHART_HEIGHT - 20;
-    return CHART_HEIGHT - (((v - MIN_VALUE) / (visibleMaxValue - MIN_VALUE)) * (CHART_HEIGHT - 40) + 20);
+    
+    // Normal case - MASSIVELY strengthened safeguards
+    const range = visibleMaxValue - MIN_VALUE;
+    const CRITICAL_MIN_RANGE = 2.0; // Must match the ABSOLUTE_MIN_RANGE above
+    
+    // EMERGENCY FALLBACK: If range is dangerously small, force safe positioning
+    if (range < CRITICAL_MIN_RANGE) {
+      console.warn(`Chart condensing detected! Range: ${range}, forcing safe positioning`);
+      // Use a safe range and position values accordingly
+      const safeRange = CRITICAL_MIN_RANGE;
+      const safeMaxValue = MIN_VALUE + safeRange;
+      const normalizedValue = Math.max(MIN_VALUE, Math.min(v, safeMaxValue));
+      return CHART_HEIGHT - (((normalizedValue - MIN_VALUE) / safeRange) * (CHART_HEIGHT - 40) + 20);
+    }
+    
+    // Normal case with validated range
+    const clampedValue = Math.max(MIN_VALUE, Math.min(v, visibleMaxValue));
+    return CHART_HEIGHT - (((clampedValue - MIN_VALUE) / range) * (CHART_HEIGHT - 40) + 20);
   };
   
   // Get the last (most recent) candle's value
@@ -608,6 +652,9 @@ function GameGraph() {
     setVisibleMaxValue(2.0);
     setCurrentTick(0);
     absoluteCandleIndexRef.current = 0;
+    
+    // Reset grid system
+    resetGridSystem();
     
     // Start in presale mode
     setGameState('presale');
@@ -817,6 +864,9 @@ function GameGraph() {
         
         // Reset absolute candle index counter for new game
         absoluteCandleIndexRef.current = 0;
+        
+        // Reset grid system
+        resetGridSystem();
       } 
       else if (message.state === 'active') {
         console.log('Game now active');
@@ -919,38 +969,85 @@ function GameGraph() {
       currentCandleHigh / (1 - MIN_TOP_MARGIN_PERCENTAGE),
       2.0
     );
-    const minVisible = MIN_VALUE + 0.5;
     
-    // Cancel any ongoing animation
+    // STRENGTHENED: Much more aggressive minimum range enforcement
+    const ABSOLUTE_MIN_RANGE = 2.0; // Minimum range of 2.0x (e.g., 0.3 to 2.3)
+    const minVisible = Math.max(MIN_VALUE + ABSOLUTE_MIN_RANGE, 2.5); // Much higher minimum
+    
+    // Cancel any ongoing animation and grid update timeout
     if (scalingAnimationRef.current) {
       cancelAnimationFrame(scalingAnimationRef.current);
       scalingAnimationRef.current = null;
     }
+    if (gridUpdateTimeoutRef.current) {
+      clearTimeout(gridUpdateTimeoutRef.current);
+      gridUpdateTimeoutRef.current = null;
+    }
     
-    // Only animate if scaling up
-    if (idealMaxValue > visibleMaxValue) {
+    // Animate both scaling up and down for smoother transitions
+    if (Math.abs(idealMaxValue - visibleMaxValue) > 0.01) { // Only animate if significant difference
+      // Store current grid lines as stable during scaling
+      setStableGridLines(generateGridLines(visibleMaxValue));
+      setIsScaling(true);
+      
       const startValue = visibleMaxValue;
-      const endValue = idealMaxValue;
+      const endValue = Math.max(idealMaxValue, minVisible);
+      
+      // TRIPLE SAFEGUARD: Multiple layers of range validation
+      const range = endValue - MIN_VALUE;
+      let finalEndValue = endValue;
+      
+      // First safeguard: Ensure minimum range
+      if (range < ABSOLUTE_MIN_RANGE) {
+        finalEndValue = MIN_VALUE + ABSOLUTE_MIN_RANGE;
+      }
+      
+      // Second safeguard: Never allow below absolute minimum
+      if (finalEndValue < minVisible) {
+        finalEndValue = minVisible;
+      }
+      
+      // Third safeguard: Always maintain reasonable scaling bounds
+      const currentRange = visibleMaxValue - MIN_VALUE;
+      if (currentRange >= ABSOLUTE_MIN_RANGE && finalEndValue < visibleMaxValue * 0.8) {
+        // Prevent dramatic downscaling that could cause condensing
+        finalEndValue = Math.max(finalEndValue, visibleMaxValue * 0.8);
+      }
+      
       const startTime = performance.now();
-      const duration = 500;
+      
+      // Use smooth easing for both directions  
+      const isScalingUp = finalEndValue > startValue;
+      const duration = 500; // Consistent duration
+      
       const animate = (currentTime) => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-        const easedProgress = easeOutCubic(progress);
-        let newValue = startValue + (endValue - startValue) * easedProgress;
-        newValue = Math.max(newValue, minVisible);
-        setVisibleMaxValue(newValue);
+        
+        // Use smooth ease-out for all scaling
+        const easedProgress = 1 - Math.pow(1 - progress, 2);
+        
+        const newValue = startValue + (finalEndValue - startValue) * easedProgress;
+        
+        // FINAL SAFEGUARD: Validate during animation
+        const animationRange = newValue - MIN_VALUE;
+        const safeNewValue = animationRange < ABSOLUTE_MIN_RANGE ? MIN_VALUE + ABSOLUTE_MIN_RANGE : newValue;
+        
+        setVisibleMaxValue(Math.max(safeNewValue, minVisible));
+        
         if (progress < 1) {
           scalingAnimationRef.current = requestAnimationFrame(animate);
         } else {
           scalingAnimationRef.current = null;
+          
+          // Update grid lines after scaling animation completes
+          gridUpdateTimeoutRef.current = setTimeout(() => {
+            setIsScaling(false);
+            // Grid lines will update on next render cycle
+          }, 50); // Small delay to ensure smooth transition
         }
       };
       scalingAnimationRef.current = requestAnimationFrame(animate);
-    } else if (idealMaxValue < visibleMaxValue) {
-      // Snap down immediately
-      setVisibleMaxValue(Math.max(idealMaxValue, minVisible));
     }
   }, [currentMultiplier, chartData, gameState, displayedChartData]);
 
@@ -1157,6 +1254,10 @@ function GameGraph() {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
+      if (gridUpdateTimeoutRef.current) {
+        clearTimeout(gridUpdateTimeoutRef.current);
+        gridUpdateTimeoutRef.current = null;
+      }
     };
   }, [currentMultiplier, displayMultiplier, gameState]);
 
@@ -1185,8 +1286,71 @@ function GameGraph() {
           <div className="unified-container">
             {/* Background grid lines that span the unified container but stop at leaderboard edge */}
             <div className="grid-background">
-              <svg width="100%" height="100%">
-                {/* Remove the horizontal grid lines from here since they're now in the main chart SVG */}
+              <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, zIndex: 0, pointerEvents: 'none' }}>
+                <TransitionGroup component={null}>
+                  {gridLineMultipliers.map((y, i) => (
+                    <CSSTransition
+                      key={y}
+                      timeout={600}
+                      classNames="grid-fade"
+                      appear
+                    >
+                      <g className="grid-fade-line">
+                        <line
+                          x1={0}
+                          x2="100%"
+                          y1={norm(y)}
+                          y2={norm(y)}
+                          stroke={gridLineColors[i % gridLineColors.length]}
+                          strokeWidth={0.5}
+                          opacity={0.5}
+                          className="grid-fade-line"
+                          style={{
+                            transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1)'
+                          }}
+                        />
+                        <text
+                          x={10}
+                          y={norm(y) - 8}
+                          fill="#FFFFFF"
+                          fontSize={14}
+                          fontWeight="600"
+                          style={{
+                            transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), y 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+                          }}
+                          className="grid-fade-line grid-line-label"
+                        >
+                          {y.toFixed(1)}x
+                        </text>
+                      </g>
+                    </CSSTransition>
+                  ))}
+                </TransitionGroup>
+                <line
+                  x1="0"
+                  x2="100%"
+                  y1={norm(gameState === 'active' && animatedPrice !== null ? animatedPrice : displayMultiplier)}
+                  y2={norm(gameState === 'active' && animatedPrice !== null ? animatedPrice : displayMultiplier)}
+                  stroke="#FFFFFF"
+                  strokeWidth={2}
+                  strokeDasharray="4,4"
+                  className="current-price-indicator"
+                  style={{
+                    filter: "drop-shadow(0 0 4px rgba(255, 255, 255, 0.8))",
+                    animation: "dash 0.5s linear infinite"
+                  }}
+                />
+                {isTestRunning && (
+                  <line
+                    x1="0"
+                    x2="100%"
+                    y1={norm(1.0)}
+                    y2={norm(1.0)}
+                    stroke="url(#multiplier-line-gradient)"
+                    strokeWidth={1.5}
+                    strokeDasharray="none"
+                  />
+                )}
               </svg>
             </div>
             
@@ -1296,16 +1460,7 @@ function GameGraph() {
                       <feDisplacementMap in="red-blur" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" result="displaced" />
                       <feComposite in="displaced" in2="SourceGraphic" operator="out" />
                     </filter>
-                    {/* Candle fade-out mask for left edge */}
-                    <linearGradient id="fade-mask-gradient" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="white" stopOpacity="0" />
-                      <stop offset={windowWidth <= 640 ? "8%" : "5%"} stopColor="white" stopOpacity="0" />
-                      <stop offset={windowWidth <= 640 ? "15%" : "10%"} stopColor="white" stopOpacity="1" />
-                      <stop offset="100%" stopColor="white" stopOpacity="1" />
-                    </linearGradient>
-                    <mask id="fade-mask">
-                      <rect x="0" y="0" width="100%" height="100%" fill="url(#fade-mask-gradient)" />
-                    </mask>
+
                   </defs>
                   
                   {/* First draw the grid lines */}
@@ -1313,7 +1468,7 @@ function GameGraph() {
                     {gridLineMultipliers.map((y, i) => (
                       <CSSTransition
                         key={y}
-                        timeout={900}
+                        timeout={600}
                         classNames="grid-fade"
                         appear
                       >
@@ -1328,7 +1483,7 @@ function GameGraph() {
                             opacity={0.5}
                             className="grid-fade-line"
                             style={{
-                              transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1)'
+                              transition: 'y1 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), y2 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
                             }}
                           />
                         </g>
@@ -1338,7 +1493,7 @@ function GameGraph() {
                   
                   {/* Then draw the candles */}
                   {displayedChartData.length > 0 && (isTestRunning || isRugged) && (
-                    <g mask="url(#fade-mask)">
+                    <g>
                       {displayedChartData.map((candle, i) => {
                         const isLatestCandle = i === displayedChartData.length - 1;
                         const prev = i > 0 ? displayedChartData[i - 1] : candle;
@@ -1466,6 +1621,31 @@ function GameGraph() {
                     </g>
                   )}
                   
+                  {/* Add fade overlay on top of candles for clean fade effect */}
+                  {displayedChartData.length > 0 && (isTestRunning || isRugged) && (
+                    <defs>
+                      <linearGradient id="candle-fade-overlay" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#000000" stopOpacity="1" />
+                        <stop offset={windowWidth <= 640 ? "12%" : "8%"} stopColor="#000000" stopOpacity="0.8" />
+                        <stop offset={windowWidth <= 640 ? "18%" : "12%"} stopColor="#000000" stopOpacity="0" />
+                        <stop offset="100%" stopColor="#000000" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                  )}
+                  
+                  {/* Fade overlay rectangle */}
+                  {displayedChartData.length > 0 && (isTestRunning || isRugged) && (
+                    <rect
+                      x="0"
+                      y="0"
+                      width="100%"
+                      height="100%"
+                      fill="url(#candle-fade-overlay)"
+                      pointerEvents="none"
+                      style={{ mixBlendMode: 'normal' }}
+                    />
+                  )}
+                  
                   {/* Draw the indicator lines on top of candles */}
                   {displayedChartData.length > 0 && isTestRunning && gameState !== 'presale' && (
                     <g>
@@ -1585,7 +1765,7 @@ function GameGraph() {
                     {gridLineMultipliers.map((y, i) => (
                       <CSSTransition
                         key={y}
-                        timeout={900}
+                        timeout={600}
                         classNames="grid-fade"
                         appear
                       >
@@ -1597,7 +1777,8 @@ function GameGraph() {
                             fontSize={14}
                             fontWeight="600"
                             style={{
-                              transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), y 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+                              transition: 'y 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                              filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8))'
                             }}
                             className="grid-fade-line grid-line-label"
                           >
@@ -1726,20 +1907,38 @@ function GameGraph() {
       <style>{`
         .grid-fade-enter {
           opacity: 0;
+          transform: translateY(8px);
         }
         .grid-fade-enter-active {
-          opacity: 0.5;
-          transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-          will-change: opacity;
+          opacity: 1;
+          transform: translateY(0px);
+          transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                      transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          will-change: opacity, transform;
           transition-delay: 0.05s;
         }
         .grid-fade-exit {
-          opacity: 0.5;
+          opacity: 1;
+          transform: translateY(0px);
         }
         .grid-fade-exit-active {
           opacity: 0;
-          transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-          will-change: opacity;
+          transform: translateY(-8px);
+          transition: opacity 0.6s cubic-bezier(0.55, 0.085, 0.68, 0.53), 
+                      transform 0.6s cubic-bezier(0.55, 0.085, 0.68, 0.53);
+          will-change: opacity, transform;
+        }
+        .grid-fade-appear {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        .grid-fade-appear-active {
+          opacity: 1;
+          transform: translateY(0px);
+          transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                      transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          will-change: opacity, transform;
+          transition-delay: 0.1s;
         }
       `}</style>
     </div>
