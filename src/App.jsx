@@ -4,6 +4,7 @@ import createBlockies from "ethereum-blockies-base64";
 import ruggedSvg from "./assets/RUGGED.svg"; // Import the RUGGED.svg file from assets
 import solanaLogo from "./assets/solanaLogoMark.svg"; // Import Solana logo
 import rugsLogo from "./assets/rugslogo.svg"; // Import Rugs logo
+import { TransitionGroup, CSSTransition } from 'react-transition-group';
 
 // Mock data for chart and players
 const initialMockChartData = [];  // Changed to empty array to prevent candles showing on load
@@ -46,8 +47,8 @@ const mockPlayers = [
 
 const CHART_HEIGHT = 400;
 const CHART_WIDTH = 800;
-const CANDLE_WIDTH = 26;
-const CANDLE_GAP = 4;
+const CANDLE_WIDTH = 20;
+const CANDLE_GAP = 6; // Back to 6 pixels
 const MIN_VALUE = 0.3; // Minimum fixed value
 const ABSOLUTE_MAX_VALUE = 50.0; // Theoretical maximum for calculations
 const LEADERBOARD_WIDTH = 420;
@@ -63,50 +64,61 @@ const gridLineColors = [
   "#FFFFFF"  // white (bottom)
 ];
 
+// Add a ref to store the last used grid step
+let lastGridStep = 1;
+
 // Dynamic grid line generation based on the current visible range
 function generateGridLines(maxValue) {
-  // Determine a good step size based on the max value
-  let stepSize;
-  if (maxValue <= 2) stepSize = 0.2;
-  else if (maxValue <= 5) stepSize = 0.5;
-  else if (maxValue <= 10) stepSize = 1;
-  else if (maxValue <= 20) stepSize = 2;
-  else stepSize = 5;
-  
-  // Generate grid lines from 0.4x up to maxValue
+  const min = MIN_VALUE;
+  const targetLines = 6;
+  const possibleSteps = [0.5, 1, 2, 5, 10, 20, 50];
+  let step = lastGridStep;
+
+  // Find the best step, but add hysteresis: only switch if the new step is clearly better
+  let bestStep = step;
+  let bestCount = 1000;
+  for (let i = 0; i < possibleSteps.length; i++) {
+    const s = possibleSteps[i];
+    const start = Math.ceil(min / s) * s;
+    const end = Math.floor(maxValue / s) * s;
+    const count = Math.floor((end - start) / s) + 1;
+    if (count >= 4 && count <= 8) {
+      // Prefer not to switch step unless the current step is way out of range
+      if (s === step) {
+        bestStep = s;
+        bestCount = count;
+        break;
+      }
+      // Only switch if the current step would give too many or too few lines
+      if ((step < s && count < 4) || (step > s && count > 8)) {
+        bestStep = s;
+        bestCount = count;
+        break;
+      }
+      // Otherwise, keep the current step
+      if (Math.abs(count - targetLines) < Math.abs(bestCount - targetLines)) {
+        bestStep = s;
+        bestCount = count;
+      }
+    }
+  }
+  step = bestStep;
+  lastGridStep = step;
+
+  const start = Math.ceil(min / step) * step;
+  const end = Math.floor(maxValue / step) * step;
   const multipliers = [];
-  let current = 0.4; // Always start at 0.4x
-  
-  while (current <= maxValue) {
-    multipliers.push(current);
-    current += stepSize;
+  for (let v = start; v <= end + 0.0001; v += step) {
+    multipliers.push(Number(v.toFixed(4)));
   }
-  
-  // Always take every other line to reduce density
-  const filteredMultipliers = multipliers.filter((_, index) => index % 2 === 0);
-  
-  // Ensure we have at least 4 lines and at most 6
-  if (filteredMultipliers.length < 4) {
-    // Add finer lines if we have too few
-    stepSize /= 2;
-    multipliers.length = 0;
-    current = 0.4;
-    while (current <= maxValue) {
-      multipliers.push(current);
-      current += stepSize;
-    }
-    return multipliers.filter((_, index) => index % 2 === 0);
-  } else if (filteredMultipliers.length > 6) {
-    // Take just enough evenly spaced lines
-    const step = Math.ceil(filteredMultipliers.length / 6);
-    const finalMultipliers = [];
-    for (let i = 0; i < filteredMultipliers.length; i += step) {
-      finalMultipliers.push(filteredMultipliers[i]);
-    }
-    return finalMultipliers;
+
+  // Always include 1.0x if it's in the visible range and not already present
+  if (1.0 >= start && 1.0 <= end && !multipliers.includes(1.0)) {
+    multipliers.push(1.0);
+    multipliers.sort((a, b) => a - b);
   }
-  
-  return filteredMultipliers;
+
+  return multipliers;
 }
 
 function Logo() {
@@ -852,7 +864,14 @@ function GameGraph() {
   useEffect(() => {
     // Store the previous multiplier for animation reference
     previousMultiplierRef.current = currentMultiplier;
-    
+
+    // If entering presale, reset chart to initial state
+    if (gameState === 'presale') {
+      setVisibleMaxValue(2.0);
+      setDisplayMultiplier(1.0);
+      return;
+    }
+
     // If rugged, ensure we use an appropriate scale
     if (gameState === 'rugged') {
       // Find the highest value in the chart data before the rug
@@ -1136,6 +1155,16 @@ function GameGraph() {
     };
   }, [currentMultiplier, displayMultiplier, gameState]);
 
+  // Add state for grid line fade-in
+  const [gridLinesVisible, setGridLinesVisible] = useState(false);
+
+  // Fade in grid lines after mount or when gridLineMultipliers change
+  useEffect(() => {
+    setGridLinesVisible(false);
+    const timeout = setTimeout(() => setGridLinesVisible(true), 30);
+    return () => clearTimeout(timeout);
+  }, [gridLineMultipliers.length, visibleMaxValue]);
+
   return (
     <div className="app-container">
       <Logo />
@@ -1225,6 +1254,13 @@ function GameGraph() {
                         <animate attributeName="offset" values="1;0.25;0.5;0.75;1;1" dur="8s" repeatCount="indefinite" />
                       </stop>
                     </linearGradient>
+
+                    {/* Add animated dotted line definition */}
+                    <defs>
+                      <pattern id="dotted-pattern" x="0" y="0" width="20" height="1" patternUnits="userSpaceOnUse">
+                        <line x1="0" y1="0" x2="10" y2="0" stroke="url(#rainbow-gradient)" strokeWidth="2" />
+                      </pattern>
+                    </defs>
                     
                     {/* Explosion gradients for rug candle */}
                     <radialGradient id="explosion-gradient" cx="0.5" cy="0.5" r="0.5" fx="0.5" fy="0.5">
@@ -1257,22 +1293,32 @@ function GameGraph() {
                   </defs>
                   
                   {/* First draw the grid lines */}
-                  {gridLineMultipliers.map((y, i) => (
-                    <g key={`grid-${i}`}>
-                      <line
-                        x1={0}
-                        x2="120%" /* Extend beyond container width to flow behind leaderboard */
-                        y1={norm(y)}
-                        y2={norm(y)}
-                        stroke={gridLineColors[i % gridLineColors.length]}
-                        strokeWidth={0.5}
-                        opacity={0.5}
-                        style={{
-                          transition: 'y1 0.5s cubic-bezier(0.4, 0, 0.2, 1), y2 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
-                        }}
-                      />
-                    </g>
-                  ))}
+                  <TransitionGroup component={null}>
+                    {gridLineMultipliers.map((y, i) => (
+                      <CSSTransition
+                        key={y}
+                        timeout={900}
+                        classNames="grid-fade"
+                        appear
+                      >
+                        <g className="grid-fade-line">
+                          <line
+                            x1={0}
+                            x2="120%"
+                            y1={norm(y)}
+                            y2={norm(y)}
+                            stroke={gridLineColors[i % gridLineColors.length]}
+                            strokeWidth={0.5}
+                            opacity={0.5}
+                            className="grid-fade-line"
+                            style={{
+                              transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1)'
+                            }}
+                          />
+                        </g>
+                      </CSSTransition>
+                    ))}
+                  </TransitionGroup>
                   
                   {/* Then draw the candles */}
                   {displayedChartData.length > 0 && (isTestRunning || isRugged) && displayedChartData.map((candle, i) => {
@@ -1307,7 +1353,7 @@ function GameGraph() {
                     );
                     
                     // Calculate gap between candles
-                    const gap = Math.max(1, Math.min(CANDLE_GAP, containerWidth / 320));
+                    const gap = Math.max(4, Math.min(CANDLE_GAP, containerWidth / 200)); // Adjusted divisor from 320 to 200 for more consistent gaps
                     
                     // Position the latest candle with a fixed offset from the right edge
                     const distanceFromEnd = displayedChartData.length - 1 - i;
@@ -1375,8 +1421,8 @@ function GameGraph() {
                           fill={`url(#${isRugCandle ? "red-gradient" : (up ? "blue-gradient" : "red-gradient")})`}
                           style={{
                             filter: isRugCandle 
-                              ? "drop-shadow(0 0 8px #FF0000) drop-shadow(0 0 12px #FF3300)" // Fire glow for rug candle
-                              : (up ? "drop-shadow(0 0 4px #00FF00) drop-shadow(0 0 8px #00FF00)" : "drop-shadow(0 0 4px #FF0000) drop-shadow(0 0 8px #FF0000)")
+                              ? "drop-shadow(0 0 8px #FF0000) drop-shadow(0 0 12px #FF3300)" // Keep fire glow for rug candle only
+                              : "none" // Remove glow for normal candles
                           }}
                         />
                         
@@ -1405,11 +1451,13 @@ function GameGraph() {
                         x2="120%" /* Extend beyond container width to flow behind leaderboard */
                         y1={norm(gameState === 'active' && animatedPrice !== null ? animatedPrice : displayMultiplier)}
                         y2={norm(gameState === 'active' && animatedPrice !== null ? animatedPrice : displayMultiplier)}
-                        stroke="url(#rainbow-gradient)"
+                        stroke="#FFFFFF"
                         strokeWidth={2}
+                        strokeDasharray="4,4"
                         className="current-price-indicator"
                         style={{ 
-                          filter: "drop-shadow(0 0 4px rgba(255, 255, 255, 0.8))"
+                          filter: "drop-shadow(0 0 4px rgba(255, 255, 255, 0.8))",
+                          animation: "dash 0.5s linear infinite"
                         }}
                       />
                       {/* Add the multiplier text directly in the SVG */}
@@ -1480,7 +1528,7 @@ function GameGraph() {
                         Math.min(CANDLE_WIDTH * candleWidthRatio, ((containerWidth - rightMargin) / 15) * 0.8)
                       );
                       
-                      const gap = Math.max(1, Math.min(CANDLE_GAP, containerWidth / 320));
+                      const gap = Math.max(4, Math.min(CANDLE_GAP, containerWidth / 200)); // Adjusted divisor from 320 to 200 for more consistent gaps
                       
                       const availableWidth = containerWidth - rightMargin;
                       const SAFE_MARGIN = containerWidth * 0.09;
@@ -1510,25 +1558,33 @@ function GameGraph() {
                   </g>
                   
                   {/* Finally draw the grid labels on top */}
-                  {gridLineMultipliers.map((y, i) => (
-                    <g key={`grid-label-${i}`}>
-                      <text
-                        x={10}
-                        y={norm(y) - 8}
-                        fill="#FFFFFF"
-                        fontSize={14}
-                        fontWeight="600"
-                        style={{ 
-                          textShadow: "0 0 8px #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
-                          filter: "drop-shadow(0 0 2px rgba(0,0,0,0.9))",
-                          transition: 'y 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
-                        }}
-                        className="grid-line-label"
+                  <TransitionGroup component={null}>
+                    {gridLineMultipliers.map((y, i) => (
+                      <CSSTransition
+                        key={y}
+                        timeout={900}
+                        classNames="grid-fade"
+                        appear
                       >
-                        {y.toFixed(1)}x
-                      </text>
-                    </g>
-                  ))}
+                        <g className="grid-fade-line">
+                          <text
+                            x={10}
+                            y={norm(y) - 8}
+                            fill="#FFFFFF"
+                            fontSize={14}
+                            fontWeight="600"
+                            style={{ 
+                              textShadow: "0 0 8px #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+                              filter: "drop-shadow(0 0 2px rgba(0,0,0,0.9))",
+                              transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1)'
+                            }}
+                          >
+                            {y.toFixed(1)}x
+                          </text>
+                        </g>
+                      </CSSTransition>
+                    ))}
+                  </TransitionGroup>
                   
                   {/* Add 'RUGGED' text in the chart SVG when rugged */}
                   {gameState === 'rugged' && (
@@ -1617,6 +1673,36 @@ function GameGraph() {
           </div>
         </div>
       </div>
+      {/* Add the animation keyframes */}
+      <style>
+        {`
+          @keyframes dash {
+            to {
+              stroke-dashoffset: -8;
+            }
+          }
+        `}
+      </style>
+      {/* Add CSS for grid-fade transitions */}
+      <style>{`
+        .grid-fade-enter {
+          opacity: 0;
+        }
+        .grid-fade-enter-active {
+          opacity: 0.5;
+          transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: opacity;
+          transition-delay: 0.05s;
+        }
+        .grid-fade-exit {
+          opacity: 0.5;
+        }
+        .grid-fade-exit-active {
+          opacity: 0;
+          transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: opacity;
+        }
+      `}</style>
     </div>
   );
 }
