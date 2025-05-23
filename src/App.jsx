@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import "./App.css";
 import createBlockies from "ethereum-blockies-base64";
 import ruggedSvg from "./assets/RUGGED.svg"; // Import the RUGGED.svg file from assets
@@ -42,6 +42,17 @@ const mockAddresses = [
   "0xC901234567890123456789012345678901234567",
   "0xD012345678901234567890123456789012345678"
 ];
+
+// Cache for blockie images to avoid regenerating them
+const blockieCache = new Map();
+
+// Memoized blockie generator
+const getBlockieImage = (address) => {
+  if (!blockieCache.has(address)) {
+    blockieCache.set(address, createBlockies(address));
+  }
+  return blockieCache.get(address);
+};
 
 const mockPlayers = [
   { name: "anon", address: mockAddresses[0], profit: "+0.827", percent: "+20.66%", tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
@@ -157,16 +168,17 @@ function generateGridLines(maxValue) {
   return multipliers;
 }
 
-function Logo() {
+// Memoized components for better performance
+const Logo = React.memo(() => {
   return (
     <div className="logo-container">
       <h1 className="logo-text">RUGS.FUN</h1>
       <span className="beta-tag">BETA</span>
     </div>
   );
-}
+});
 
-function TestControls({ onStartTest, isRunning, onStopTest, onTestGameStates }) {
+const TestControls = React.memo(({ onStartTest, isRunning, onStopTest, onTestGameStates }) => {
   return (
     <div className="test-controls">
       {!isRunning ? (
@@ -202,11 +214,11 @@ function TestControls({ onStartTest, isRunning, onStopTest, onTestGameStates }) 
       </div>
     </div>
   );
-}
+});
 
-function PlayerBox({ player, index }) {
+const PlayerBox = React.memo(({ player, index }) => {
   const profit = player.profit.replace("+", "");
-  const blockieImage = createBlockies(player.address);
+  const blockieImage = getBlockieImage(player.address);
   
   // Responsive adjustments for leaderboard player row on mobile
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
@@ -241,10 +253,10 @@ function PlayerBox({ player, index }) {
       </div>
     </div>
   );
-}
+});
 
-// Trade marker component that will be used to render trade notifications
-function TradeMarker({ trade, x, y, opacity = 1, candleX }) {
+// Memoized trade marker for performance - only re-render when props change
+const TradeMarker = React.memo(({ trade, x, y, opacity = 1, candleX }) => {
   // Smaller dimensions for the notification box to match the image
   const boxWidth = 95;
   const boxHeight = 36;
@@ -364,7 +376,7 @@ function TradeMarker({ trade, x, y, opacity = 1, candleX }) {
       </text>
     </g>
   );
-}
+});
 
 function GameGraph() {
   const [chartData, setChartData] = useState(initialMockChartData);
@@ -427,24 +439,31 @@ function GameGraph() {
     return activeTradesMap;
   }, [activeTradesMap]);
   
-  // Add window resize listener
+  // Optimize window resize listener with throttling
   useEffect(() => {
+    let timeoutId;
     const handleResize = () => {
-      setWindowWidth(window.innerWidth);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setWindowWidth(window.innerWidth);
+      }, 100); // Throttle resize events
     };
     
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
     };
   }, []);
   
-  // Generate grid lines based on the current visible range
+  // Generate grid lines based on the current visible range - memoized for performance
   // Use stable grid lines during scaling to prevent flashing
-  const gridLineMultipliers = isScaling ? stableGridLines : generateGridLines(visibleMaxValue);
+  const gridLineMultipliers = useMemo(() => {
+    return isScaling ? stableGridLines : generateGridLines(visibleMaxValue);
+  }, [isScaling, stableGridLines, visibleMaxValue]);
   
-  // Normalize function for calculating y positions based on visible range
-  const norm = v => {
+  // Normalize function for calculating y positions based on visible range - memoized
+  const norm = useCallback((v) => {
     // STRENGTHENED NORMALIZATION with multiple safeguards
     
     // For rugged state, ensure we can see values down to zero
@@ -478,7 +497,7 @@ function GameGraph() {
     // Normal case with validated range
     const clampedValue = Math.max(MIN_VALUE, Math.min(v, visibleMaxValue));
     return CHART_HEIGHT - (((clampedValue - MIN_VALUE) / range) * (CHART_HEIGHT - 40) + 20);
-  };
+  }, [gameState, visibleMaxValue]);
   
   // Get the last (most recent) candle's value
   // Always default to 1.0 if no candles are available to match production
@@ -514,8 +533,8 @@ function GameGraph() {
     return parseFloat(newPrice.toFixed(4));
   };
   
-  // Function to generate a new trade marker
-  const generateTrade = (candleIndex, price) => {
+  // Function to generate a new trade marker - optimized with useCallback
+  const generateTrade = useCallback((candleIndex, price) => {
     // Randomly select a player and token
     const playerIndex = Math.floor(Math.random() * mockPlayers.length);
     const player = mockPlayers[playerIndex];
@@ -544,7 +563,7 @@ function GameGraph() {
       timestamp: Date.now(),
       opacity: 1,              // Start fully visible
     };
-  };
+  }, []);
   
   // Function to add a new trade
   const addNewTrade = (trade) => {
@@ -767,9 +786,9 @@ function GameGraph() {
       const lastCandle = prevData[prevData.length - 1];
       const rugCandle = {
         high: lastCandle.close,
-        low: 0, // Change from 0.01 to 0
+        low: 0, // Crash to absolute zero
         open: lastCandle.close,
-        close: 0, // Change from 0.01 to 0
+        close: 0, // Crash to absolute zero
         timestamp: Date.now(),
         absoluteIndex: absoluteCandleIndexRef.current + 1,
         isRugCandle: true
@@ -779,9 +798,16 @@ function GameGraph() {
     });
     
     // Update state to rugged - set currentMultiplier to 0 but DON'T set displayMultiplier
-    // This allows the animation to run and show the drop to 0
+    // This allows the animation to run and show the dramatic drop to 0
     setGameState('rugged');
     setCurrentMultiplier(0);
+    
+    // Immediately trigger rapid scaling to show the dramatic crash
+    // Force immediate visual scale adjustment to show full crash range
+    setTimeout(() => {
+      const currentHighestValue = chartData.reduce((max, candle) => Math.max(max, candle.high), 2.0);
+      setVisibleMaxValue(Math.max(currentHighestValue * 1.2, 3.0)); // Ensure we show the full crash range
+    }, 50);
   };
   
   // Function to stop test
@@ -950,8 +976,46 @@ function GameGraph() {
     }
 
     if (gameState === 'rugged') {
+      // For rugged state, we want to show the FULL dramatic crash range
+      // Get the highest value from all candles to show the complete fall to 0
       const highestValue = displayedChartData.reduce((max, candle) => Math.max(max, candle.high), 2.0);
-      setVisibleMaxValue(Math.max(highestValue * 1.1, 2.0));
+      const targetMaxValue = Math.max(highestValue * 1.15, 3.0); // Show slightly above peak for dramatic effect
+      
+      // Animate the scaling to show the full crash range dramatically
+      if (Math.abs(targetMaxValue - visibleMaxValue) > 0.1) {
+        // Store current grid lines as stable during scaling
+        setStableGridLines(generateGridLines(visibleMaxValue));
+        setIsScaling(true);
+        
+        const startValue = visibleMaxValue;
+        const startTime = performance.now();
+        const duration = 600; // Slightly longer to show the full dramatic scale
+        
+        const animateRuggedScale = (currentTime) => {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          // Use ease-out for dramatic effect
+          const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out for more drama
+          
+          const newValue = startValue + (targetMaxValue - startValue) * easedProgress;
+          setVisibleMaxValue(newValue);
+          
+          if (progress < 1) {
+            scalingAnimationRef.current = requestAnimationFrame(animateRuggedScale);
+          } else {
+            scalingAnimationRef.current = null;
+            setIsScaling(false);
+          }
+        };
+        
+        if (scalingAnimationRef.current) {
+          cancelAnimationFrame(scalingAnimationRef.current);
+        }
+        scalingAnimationRef.current = requestAnimationFrame(animateRuggedScale);
+      } else {
+        setVisibleMaxValue(targetMaxValue);
+      }
       return;
     }
 
@@ -1195,14 +1259,15 @@ function GameGraph() {
     };
     
     const animateValue = () => {
-      // If game is rugged but display hasn't reached 0 yet, force faster animation to 0
-      if (gameState === 'rugged' && displayMultiplier > 0.05) {
-        // Use a larger step for faster drop to 0
-        const step = displayMultiplier * 0.2; // Reduced from 0.3 to 0.2 for smoother drop
-        const easedStep = step * easeOutExpo(step / displayMultiplier);
+      // If game is rugged but display hasn't reached 0 yet, force RAPID crash animation
+      if (gameState === 'rugged' && displayMultiplier > 0.01) {
+        // Use much larger step for dramatic crash effect - make it 10x faster
+        const step = displayMultiplier * 0.6; // Increased from 0.2 to 0.6 for rapid crash
+        const crashEasing = (t) => 1 - Math.pow(1 - t, 4); // Quartic ease-out for dramatic crash
+        const easedStep = step * crashEasing(step / displayMultiplier);
         const newValue = displayMultiplier - easedStep;
         
-        if (newValue <= 0.05) {
+        if (newValue <= 0.01) {
           setDisplayMultiplier(0);
           cancelAnimationFrame(animationFrameRef.current);
           animationFrameRef.current = null;
@@ -1579,7 +1644,7 @@ function GameGraph() {
                               x2={x + responsiveCandleWidth / 2}
                               y2={wickBottom}
                               stroke={isRugCandle ? "#FF3300" : (up ? "#00FF00" : "#FF0000")}
-                              strokeWidth={isRugCandle ? (isMobile ? 3 : 4) : (isMobile ? 1 : 2)} // Thicker for rug candle
+                              strokeWidth={isRugCandle ? (isMobile ? 5 : 7) : (isMobile ? 1 : 2)} // Much thicker for dramatic rug candle
                             />
                             
                             {/* Candle body */}
@@ -1591,23 +1656,36 @@ function GameGraph() {
                               fill={`url(#${isRugCandle ? "red-gradient" : (up ? "blue-gradient" : "red-gradient")})`}
                               style={{
                                 filter: isRugCandle 
-                                  ? "drop-shadow(0 0 8px #FF0000) drop-shadow(0 0 12px #FF3300)" // Keep fire glow for rug candle only
+                                  ? "drop-shadow(0 0 15px #FF0000) drop-shadow(0 0 25px #FF3300) drop-shadow(0 0 35px #FF6600)" // Much stronger glow for dramatic effect
                                   : "none" // Remove glow for normal candles
                               }}
                             />
                             
-                            {/* Add explosion effect for the rug candle */}
+                            {/* Add massive explosion effect for the rug candle */}
                             {isRugCandle && (
-                              <circle
-                                cx={x + responsiveCandleWidth / 2}
-                                cy={bodyBottom}
-                                r={responsiveCandleWidth * 2}
-                                fill="url(#red-gradient)"
-                                opacity={0.4}
-                                style={{
-                                  filter: "drop-shadow(0 0 10px #FF0000)"
-                                }}
-                              />
+                              <g>
+                                {/* Multiple explosion circles for dramatic effect */}
+                                <circle
+                                  cx={x + responsiveCandleWidth / 2}
+                                  cy={bodyBottom}
+                                  r={responsiveCandleWidth * 3}
+                                  fill="url(#explosion-gradient)"
+                                  opacity={0.6}
+                                  style={{
+                                    filter: "drop-shadow(0 0 20px #FF0000)"
+                                  }}
+                                />
+                                <circle
+                                  cx={x + responsiveCandleWidth / 2}
+                                  cy={bodyBottom}
+                                  r={responsiveCandleWidth * 1.5}
+                                  fill="url(#fire-gradient)"
+                                  opacity={0.8}
+                                  style={{
+                                    filter: "drop-shadow(0 0 15px #FF3300)"
+                                  }}
+                                />
+                              </g>
                             )}
                           </g>
                         );
