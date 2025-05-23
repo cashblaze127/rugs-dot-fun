@@ -1675,7 +1675,7 @@ function GameGraph() {
                                   strokeDasharray="3,2"
                                   opacity="0"
                                   style={{
-                                    animation: "crack-appear 0.5s ease-out 0.6s forwards"
+                                    animation: "crack-appear 0.5s ease-out 0.5s forwards"
                                   }}
                                 />
                                 
@@ -1689,7 +1689,7 @@ function GameGraph() {
                                       fill="#FFD700"
                                       opacity="0"
                                       style={{
-                                        animation: `spark-${sparkIndex % 3} 0.8s ease-out ${0.6 + sparkIndex * 0.1}s forwards`
+                                        animation: `spark-${sparkIndex % 3} 0.8s ease-out ${0.5 + sparkIndex * 0.1}s forwards`
                                       }}
                                     />
                                     <circle
@@ -1699,7 +1699,7 @@ function GameGraph() {
                                       fill="#FF6600"
                                       opacity="0"
                                       style={{
-                                        animation: `spark-${(sparkIndex + 1) % 3} 0.6s ease-out ${0.65 + sparkIndex * 0.08}s forwards`
+                                        animation: `spark-${(sparkIndex + 1) % 3} 0.6s ease-out ${0.55 + sparkIndex * 0.08}s forwards`
                                       }}
                                     />
                                   </g>
@@ -1715,7 +1715,7 @@ function GameGraph() {
                                   strokeWidth="3"
                                   opacity="0"
                                   style={{
-                                    animation: "ground-impact 0.4s ease-out 0.6s forwards"
+                                    animation: "ground-impact 0.4s ease-out 0.5s forwards"
                                   }}
                                 />
                                 
@@ -1727,7 +1727,7 @@ function GameGraph() {
                                   fill="#8B4513"
                                   opacity="0"
                                   style={{
-                                    animation: "ground-impact 0.5s ease-out 0.65s forwards"
+                                    animation: "ground-impact 0.5s ease-out 0.55s forwards"
                                   }}
                                 />
                               </g>
