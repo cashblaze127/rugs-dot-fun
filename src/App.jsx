@@ -1644,7 +1644,7 @@ function GameGraph() {
                               x2={x + responsiveCandleWidth / 2}
                               y2={wickBottom}
                               stroke={isRugCandle ? "#FF3300" : (up ? "#00FF00" : "#FF0000")}
-                              strokeWidth={isRugCandle ? (isMobile ? 5 : 7) : (isMobile ? 1 : 2)} // Much thicker for dramatic rug candle
+                              strokeWidth={isRugCandle ? (isMobile ? 3 : 4) : (isMobile ? 1 : 2)} // Moderate thickness for rug candle
                             />
                             
                             {/* Candle body */}
@@ -1656,35 +1656,54 @@ function GameGraph() {
                               fill={`url(#${isRugCandle ? "red-gradient" : (up ? "blue-gradient" : "red-gradient")})`}
                               style={{
                                 filter: isRugCandle 
-                                  ? "drop-shadow(0 0 15px #FF0000) drop-shadow(0 0 25px #FF3300) drop-shadow(0 0 35px #FF6600)" // Much stronger glow for dramatic effect
-                                  : "none" // Remove glow for normal candles
+                                  ? "drop-shadow(0 0 6px #FF3300)" // Subtle glow only
+                                  : "none"
                               }}
                             />
                             
-                            {/* Add massive explosion effect for the rug candle */}
+                            {/* Add crash-through sparks effect for the rug candle */}
                             {isRugCandle && (
-                              <g>
-                                {/* Multiple explosion circles for dramatic effect */}
-                                <circle
-                                  cx={x + responsiveCandleWidth / 2}
-                                  cy={bodyBottom}
-                                  r={responsiveCandleWidth * 3}
-                                  fill="url(#explosion-gradient)"
-                                  opacity={0.6}
+                              <g className="crash-sparks">
+                                {/* Ground crack line */}
+                                <line
+                                  x1={x - responsiveCandleWidth}
+                                  y1={CHART_HEIGHT - 20}
+                                  x2={x + responsiveCandleWidth * 2}
+                                  y2={CHART_HEIGHT - 20}
+                                  stroke="#FFD700"
+                                  strokeWidth="2"
+                                  strokeDasharray="3,2"
+                                  opacity="0"
                                   style={{
-                                    filter: "drop-shadow(0 0 20px #FF0000)"
+                                    animation: "crack-appear 0.5s ease-out 0.8s forwards"
                                   }}
                                 />
-                                <circle
-                                  cx={x + responsiveCandleWidth / 2}
-                                  cy={bodyBottom}
-                                  r={responsiveCandleWidth * 1.5}
-                                  fill="url(#fire-gradient)"
-                                  opacity={0.8}
-                                  style={{
-                                    filter: "drop-shadow(0 0 15px #FF3300)"
-                                  }}
-                                />
+                                
+                                {/* Sparks particles */}
+                                {[...Array(6)].map((_, sparkIndex) => (
+                                  <g key={sparkIndex}>
+                                    <circle
+                                      cx={x + responsiveCandleWidth/2 + (sparkIndex - 3) * 8}
+                                      cy={CHART_HEIGHT - 15}
+                                      r="2"
+                                      fill="#FFD700"
+                                      opacity="0"
+                                      style={{
+                                        animation: `spark-${sparkIndex % 3} 0.8s ease-out ${0.9 + sparkIndex * 0.1}s forwards`
+                                      }}
+                                    />
+                                    <circle
+                                      cx={x + responsiveCandleWidth/2 + (sparkIndex - 3) * 6}
+                                      cy={CHART_HEIGHT - 10}
+                                      r="1"
+                                      fill="#FF6600"
+                                      opacity="0"
+                                      style={{
+                                        animation: `spark-${(sparkIndex + 1) % 3} 0.6s ease-out ${1.0 + sparkIndex * 0.08}s forwards`
+                                      }}
+                                    />
+                                  </g>
+                                ))}
                               </g>
                             )}
                           </g>
