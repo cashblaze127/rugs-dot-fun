@@ -581,51 +581,55 @@ svg, rect, line, g {
   pointer-events: none;
 }
 
-/* Rugged candle styling with crash-through animation */
+/* Rugged candle styling with dramatic downward crash */
 .rugged-candle {
-  animation: crash-through 1.2s ease-in forwards;
+  animation: crash-down 0.8s ease-in forwards;
 }
 
-@keyframes crash-through {
+@keyframes crash-down {
   0% { 
     opacity: 1; 
-    transform: translateY(0) scale(1);
+    transform: translateY(0) scale(1) rotate(0deg);
   }
-  30% { 
+  20% { 
     opacity: 1; 
-    transform: translateY(5px) scale(1.02);
+    transform: translateY(10px) scale(1.1) rotate(2deg);
   }
-  60% { 
+  50% { 
     opacity: 1; 
-    transform: translateY(15px) scale(1.05);
+    transform: translateY(80px) scale(1.3) rotate(5deg);
   }
-  80% { 
-    opacity: 0.8; 
-    transform: translateY(35px) scale(1.1);
+  70% { 
+    opacity: 1; 
+    transform: translateY(150px) scale(1.5) rotate(8deg);
+  }
+  85% { 
+    opacity: 1; 
+    transform: translateY(220px) scale(1.8) rotate(12deg);
   }
   100% { 
-    opacity: 0.6; 
-    transform: translateY(60px) scale(1.15);
+    opacity: 0.9; 
+    transform: translateY(300px) scale(2.2) rotate(15deg);
   }
 }
 
-/* Spark animations */
+/* Spark animations - triggered on ground impact */
 @keyframes spark-0 {
   0% { 
     opacity: 0; 
     transform: translate(0, 0) scale(0);
   }
-  20% { 
+  10% { 
     opacity: 1; 
-    transform: translate(-15px, -20px) scale(1.2);
+    transform: translate(-30px, -40px) scale(1.5);
   }
-  60% { 
-    opacity: 0.8; 
-    transform: translate(-25px, -35px) scale(0.8);
+  50% { 
+    opacity: 0.9; 
+    transform: translate(-60px, -80px) scale(1.2);
   }
   100% { 
     opacity: 0; 
-    transform: translate(-30px, -45px) scale(0.3);
+    transform: translate(-90px, -120px) scale(0.5);
   }
 }
 
@@ -634,17 +638,17 @@ svg, rect, line, g {
     opacity: 0; 
     transform: translate(0, 0) scale(0);
   }
-  20% { 
+  10% { 
     opacity: 1; 
-    transform: translate(10px, -25px) scale(1.1);
+    transform: translate(30px, -45px) scale(1.4);
   }
-  60% { 
-    opacity: 0.7; 
-    transform: translate(20px, -40px) scale(0.7);
+  50% { 
+    opacity: 0.8; 
+    transform: translate(65px, -90px) scale(1.1);
   }
   100% { 
     opacity: 0; 
-    transform: translate(25px, -50px) scale(0.2);
+    transform: translate(95px, -130px) scale(0.4);
   }
 }
 
@@ -653,28 +657,51 @@ svg, rect, line, g {
     opacity: 0; 
     transform: translate(0, 0) scale(0);
   }
-  20% { 
+  10% { 
     opacity: 1; 
-    transform: translate(5px, -30px) scale(1.3);
+    transform: translate(0, -50px) scale(1.6);
   }
-  60% { 
-    opacity: 0.6; 
-    transform: translate(8px, -45px) scale(0.9);
+  50% { 
+    opacity: 0.7; 
+    transform: translate(0, -100px) scale(1.3);
   }
   100% { 
     opacity: 0; 
-    transform: translate(10px, -55px) scale(0.4);
+    transform: translate(0, -150px) scale(0.6);
   }
 }
 
 @keyframes crack-appear {
   0% { 
     opacity: 0; 
-    stroke-dashoffset: 20;
+    stroke-dashoffset: 30;
+    stroke-width: 0;
+  }
+  20% { 
+    opacity: 1; 
+    stroke-dashoffset: 15;
+    stroke-width: 3;
   }
   100% { 
-    opacity: 0.8; 
+    opacity: 0.9; 
     stroke-dashoffset: 0;
+    stroke-width: 4;
+  }
+}
+
+/* Ground impact shockwave */
+@keyframes ground-impact {
+  0% { 
+    opacity: 0; 
+    transform: scale(0);
+  }
+  30% { 
+    opacity: 0.8; 
+    transform: scale(2);
+  }
+  100% { 
+    opacity: 0; 
+    transform: scale(6);
   }
 }
 
