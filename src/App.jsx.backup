@@ -54,44 +54,33 @@ const getBlockieImage = (address) => {
   return blockieCache.get(address);
 };
 
-// Initial player data structure - will be converted to dynamic state
+// Initial player data structure - will be converted to state
 const initialPlayerData = [
-  { name: "anon", address: mockAddresses[0], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "corksuccer", address: mockAddresses[1], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "anon", address: mockAddresses[2], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "kub", address: mockAddresses[3], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Krisi18", address: mockAddresses[4], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Gorillarug", address: mockAddresses[5], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Gob", address: mockAddresses[6], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Oreoz", address: mockAddresses[7], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Romms", address: mockAddresses[8], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Gob", address: mockAddresses[9], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "anon", address: mockAddresses[0], baseProfit: 0, currentPercent: 0, tokenType: 'solana' },
+  { name: "corksuccer", address: mockAddresses[1], baseProfit: 0, currentPercent: 0, tokenType: 'rugs' },
+  { name: "anon", address: mockAddresses[2], baseProfit: 0, currentPercent: 0, tokenType: 'solana' },
+  { name: "kub", address: mockAddresses[3], baseProfit: 0, currentPercent: 0, tokenType: 'rugs' },
+  { name: "Krisi18", address: mockAddresses[4], baseProfit: 0, currentPercent: 0, tokenType: 'solana' },
+  { name: "Gorillarug", address: mockAddresses[5], baseProfit: 0, currentPercent: 0, tokenType: 'rugs' },
+  { name: "Gob", address: mockAddresses[6], baseProfit: 0, currentPercent: 0, tokenType: 'solana' },
+  { name: "Oreoz", address: mockAddresses[7], baseProfit: 0, currentPercent: 0, tokenType: 'rugs' },
+  { name: "Romms", address: mockAddresses[8], baseProfit: 0, currentPercent: 0, tokenType: 'solana' },
+  { name: "Gob", address: mockAddresses[9], baseProfit: 0, currentPercent: 0, tokenType: 'rugs' },
   // New mock players
-  { name: "Frodo", address: mockAddresses[10], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Samwise", address: mockAddresses[11], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Gandalf", address: mockAddresses[12], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Legolas", address: mockAddresses[13], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Aragorn", address: mockAddresses[14], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Boromir", address: mockAddresses[15], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Gimli", address: mockAddresses[16], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Sauron", address: mockAddresses[17], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Saruman", address: mockAddresses[18], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
-  { name: "Gollum", address: mockAddresses[19], baseAmount: 0.1 + Math.random() * 0.9, currentPercent: 0, tokenType: Math.random() > 0.5 ? 'solana' : 'rugs' },
+  { name: "Frodo", address: mockAddresses[10], baseProfit: 0, currentPercent: 0, tokenType: 'solana' },
+  { name: "Samwise", address: mockAddresses[11], baseProfit: 0, currentPercent: 0, tokenType: 'rugs' },
+  { name: "Gandalf", address: mockAddresses[12], baseProfit: 0, currentPercent: 0, tokenType: 'solana' },
+  { name: "Legolas", address: mockAddresses[13], baseProfit: 0, currentPercent: 0, tokenType: 'rugs' },
+  { name: "Aragorn", address: mockAddresses[14], baseProfit: 0, currentPercent: 0, tokenType: 'solana' },
+  { name: "Boromir", address: mockAddresses[15], baseProfit: 0, currentPercent: 0, tokenType: 'rugs' },
+  { name: "Gimli", address: mockAddresses[16], baseProfit: 0, currentPercent: 0, tokenType: 'solana' },
+  { name: "Sauron", address: mockAddresses[17], baseProfit: 0, currentPercent: 0, tokenType: 'rugs' },
+  { name: "Saruman", address: mockAddresses[18], baseProfit: 0, currentPercent: 0, tokenType: 'solana' },
+  { name: "Gollum", address: mockAddresses[19], baseProfit: 0, currentPercent: 0, tokenType: 'rugs' },
 ];
 
-// Helper function to calculate profit amount based on percentage and base amount
-const calculateProfitAmount = (baseAmount, percentChange) => {
-  if (percentChange === 0) return 0;
-  
-  // Calculate the profit amount based on percentage change
-  const profitAmount = baseAmount * (percentChange / 100);
-  
-  // Always format to 3 decimal places for consistent width
-  return Math.round(profitAmount * 1000) / 1000;
-};
-
-// Helper function to format percentage with proper truncation
-const formatPercentage = (percent) => {
+// Helper function to truncate percentage to 4 digits max
+const truncatePercentage = (percent) => {
   if (percent === 0) return "0.0%";
   
   const absPercent = Math.abs(percent);
@@ -115,117 +104,50 @@ const formatPercentage = (percent) => {
   return `${sign}${truncated}%`;
 };
 
-// Helper function to generate fluctuating percentage for a player based on chart movement
-const generateFluctuatingPercent = (currentPercent, chartMultiplier, baseVariation = 0.1) => {
-  // Calculate the chart's movement from 1.0x baseline
-  const chartMovement = (chartMultiplier - 1.0) * 100; // Convert to percentage
+// Helper function to calculate profit amount based on percentage
+const calculateProfitAmount = (baseAmount, percentChange) => {
+  if (percentChange === 0) return 0;
   
-  // Add some individual player variation (±10% by default)
-  const playerVariation = (Math.random() - 0.5) * 2 * baseVariation * 100; // ±10%
+  // Calculate the profit amount based on percentage change
+  const profitAmount = baseAmount * (percentChange / 100);
   
-  // Calculate target percentage based on chart movement + player variation
-  const targetPercent = chartMovement + playerVariation;
-  
-  // Smooth transition towards target (prevents jarring jumps)
-  const smoothingFactor = 0.15; // How quickly to move towards target
-  const newPercent = currentPercent + (targetPercent - currentPercent) * smoothingFactor;
-  
-  // Add small random fluctuation for realism
-  const randomFluctuation = (Math.random() - 0.5) * 2; // ±1%
-  
-  return newPercent + randomFluctuation;
+  // Format to reasonable decimal places
+  if (Math.abs(profitAmount) >= 10) {
+    return Math.floor(profitAmount * 100) / 100; // 2 decimal places for larger amounts
+  } else if (Math.abs(profitAmount) >= 1) {
+    return Math.floor(profitAmount * 1000) / 1000; // 3 decimal places for medium amounts
+  } else {
+    return Math.floor(profitAmount * 10000) / 10000; // 4 decimal places for small amounts
+  }
 };
 
-const CHART_HEIGHT = 400;
-const CHART_WIDTH = 800;
-const CANDLE_WIDTH = 20;
-const CANDLE_GAP = 6; // Back to 6 pixels
-const MIN_VALUE = 0.3; // Minimum fixed value
-const ABSOLUTE_MAX_VALUE = 50.0; // Theoretical maximum for calculations
-const LEADERBOARD_WIDTH = 420; // Reverted to original
-
-// Brighter, more contrasted grid line colors (top to bottom)
-const gridLineColors = [
-  "#FFFFFF", // white (top)
-  "#FFFFFF", // white
-  "#FFFFFF", // white
-  "#FFFFFF", // white (center)
-  "#FFFFFF", // white
-  "#FFFFFF", // white
-  "#FFFFFF"  // white (bottom)
-];
-
-// Add a ref to store the last used grid step
-let lastGridStep = 1;
-
-// Helper function to reset grid system
-function resetGridSystem() {
-  lastGridStep = 1;
-}
-
-// Dynamic grid line generation based on the current visible range
-function generateGridLines(maxValue) {
-  const min = MIN_VALUE;
-  const possibleSteps = [0.5, 1, 2, 5, 10, 20, 50, 100];
-  let step = lastGridStep;
-
-  // Calculate range and be more dynamic with line count
-  const range = maxValue - min;
+// Helper function to generate fluctuating percentage for a player
+const generateFluctuatingPercent = (currentPercent, gameMultiplier) => {
+  // Base the fluctuation on the current game multiplier
+  // Higher multiplier = higher potential gains
+  const multiplierBonus = (gameMultiplier - 1) * 100; // Convert to percentage
   
-  // More dynamic line count based on range
-  const maxAllowedLines = range > 20 ? 6 : (range > 10 ? 5 : 4);
-  const minAllowedLines = 3;
+  // Generate random fluctuation between -20% to +30% of current value
+  const fluctuationRange = Math.max(10, Math.abs(currentPercent) * 0.25);
+  const randomChange = (Math.random() - 0.4) * fluctuationRange; // Slight upward bias
   
-  // Find the best step with stronger hysteresis
-  let bestStep = step;
-  let bestCount = 1000;
+  // Add multiplier influence
+  const multiplierInfluence = multiplierBonus * (Math.random() * 0.3); // 0-30% of multiplier bonus
   
-  for (let i = 0; i < possibleSteps.length; i++) {
-    const s = possibleSteps[i];
-    const start = Math.ceil(min / s) * s;
-    const end = Math.floor(maxValue / s) * s;
-    const count = Math.floor((end - start) / s) + 1;
-    
-    if (count >= minAllowedLines && count <= maxAllowedLines) {
-      // Strong preference to keep current step (hysteresis)
-      if (s === step) {
-        bestStep = s;
-        bestCount = count;
-        break;
-      }
-      
-      // Only switch if current step is clearly problematic
-      const currentStepCount = Math.floor((Math.floor(maxValue / step) * step - Math.ceil(min / step) * step) / step) + 1;
-      if (currentStepCount > maxAllowedLines + 1 || currentStepCount < minAllowedLines) {
-        if (Math.abs(count - (maxAllowedLines + minAllowedLines) / 2) < Math.abs(bestCount - (maxAllowedLines + minAllowedLines) / 2)) {
-          bestStep = s;
-          bestCount = count;
-        }
-      }
-    }
+  let newPercent = currentPercent + randomChange + multiplierInfluence;
+  
+  // Ensure we stay within reasonable bounds (0% to 900%)
+  newPercent = Math.max(0, Math.min(900, newPercent));
+  
+  // Add some volatility - occasional big jumps
+  if (Math.random() < 0.1) { // 10% chance of big jump
+    const bigJump = Math.random() * 100 * (gameMultiplier / 2); // Bigger jumps with higher multiplier
+    newPercent += bigJump;
+    newPercent = Math.min(900, newPercent); // Cap at 900%
   }
   
-  step = bestStep;
-  lastGridStep = step;
-
-  const start = Math.ceil(min / step) * step;
-  const end = Math.floor(maxValue / step) * step;  // Fixed: using step instead of s
-  const multipliers = [];
-  
-  // Generate grid lines with dynamic limit
-  for (let v = start; v <= end + 0.0001; v += step) {
-    if (multipliers.length >= maxAllowedLines) break;
-    multipliers.push(Number(v.toFixed(4)));
-  }
-
-  // Always include 1.0x if it's in range and we have space
-  if (1.0 >= start && 1.0 <= end && !multipliers.includes(1.0) && multipliers.length < maxAllowedLines) {
-    multipliers.push(1.0);
-    multipliers.sort((a, b) => a - b);
-  }
-
-  return multipliers;
-}
+  return newPercent;
+};
 
 // Memoized components for better performance
 const Logo = React.memo(() => {
@@ -258,7 +180,7 @@ const TestControls = React.memo(({ onStartTest, isRunning, onStopTest, onTestGam
         </div>
       )}
       <div className="test-info">
-        The "Start Sim" button demonstrates the complete game cycle with dynamic leaderboard updates
+        The "Start Sim" button demonstrates the complete game cycle: presale → active → rugged → new presale
       </div>
       <div style={{
         marginTop: '8px',
@@ -275,28 +197,12 @@ const TestControls = React.memo(({ onStartTest, isRunning, onStopTest, onTestGam
   );
 });
 
-const PlayerBox = React.memo(({ player, index, animatedValues }) => {
-  // Handle both old static format and new dynamic format
-  let profitAmount, formattedProfit, formattedPercent;
-  
-  // Use animated values if available, otherwise fall back to player values
-  const playerId = `${player.address}-${index}`;
-  const animated = animatedValues?.[playerId];
-  
-  if (typeof player.currentPercent === 'number') {
-    // New dynamic format - use animated values if available
-    const currentPercent = animated?.percent ?? player.currentPercent;
-    const currentProfit = animated?.profit ?? parseFloat(player.profit?.replace('+', '') || '0');
-    
-    profitAmount = currentProfit;
-    formattedProfit = profitAmount === 0 ? "0.000" : (profitAmount > 0 ? `+${profitAmount.toFixed(3)}` : `${profitAmount.toFixed(3)}`);
-    formattedPercent = formatPercentage(currentPercent);
-  } else {
-    // Old static format - fallback
-    profitAmount = parseFloat(player.profit?.replace("+", "") || "0");
-    formattedProfit = player.profit || "0.000";
-    formattedPercent = player.percent || "0.0%";
-  }
+const PlayerBox = React.memo(({ player, index }) => {
+  // Calculate display values from dynamic data
+  const baseAmount = 1.0; // Base investment amount for calculation
+  const profitAmount = calculateProfitAmount(baseAmount, player.currentPercent);
+  const formattedProfit = profitAmount === 0 ? "0.0" : `+${profitAmount}`;
+  const formattedPercent = truncatePercentage(player.currentPercent);
   
   const blockieImage = getBlockieImage(player.address);
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
@@ -311,10 +217,10 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
   // Nintendo-style color schemes
   const nintendoColors = {
     topPlayer: {
-      main: 'linear-gradient(135deg, #4C1D95 0%, #3730A3 25%, #312E81 50%, #1E1B4B 75%, #0F0F23 100%)', // Darker, richer purple gradient
-      darker: 'linear-gradient(135deg, #312E81 0%, #1E1B4B 25%, #0F0F23 50%, #0A0A1A 75%, #050510 100%)', // Even darker purple
-      border: '#6366F1', // Rich indigo border
-      shadow: 'rgba(99, 102, 241, 0.4)' // Indigo shadow
+      main: 'linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FF8C00 50%, #FF6347 75%, #FF4500 100%)',
+      darker: 'linear-gradient(135deg, #DAA520 0%, #FF8C00 25%, #FF6347 50%, #FF4500 75%, #DC143C 100%)',
+      border: '#FFD700',
+      shadow: 'rgba(255, 215, 0, 0.6)'
     },
     evenRow: {
       main: 'linear-gradient(135deg, #0D1421 0%, #1A2332 25%, #243447 50%, #2E4057 75%, #3A4D63 100%)',
@@ -335,12 +241,12 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
 
   const barStyle = {
     background: colorScheme.main,
-    borderRadius: isMobile ? '6px' : '8px', // Restore the rounded corners from reference
-    border: 'none', // Remove default border to control each side individually
-    borderTop: `2px solid ${colorScheme.border}`, // Colored stroke on top
-    borderLeft: `2px solid ${colorScheme.border}`, // Colored stroke on left
-    borderBottom: `2px solid rgba(0, 0, 0, 0.4)`, // Dark border on bottom for depth
-    borderRight: `2px solid rgba(0, 0, 0, 0.3)`, // Dark border on right for depth
+    borderRadius: isMobile ? '6px' : '8px', // Slightly smaller radius on mobile
+    border: `2px solid ${colorScheme.border}`,
+    borderTop: `2px solid ${colorScheme.border}`, // Use the crypto colors instead of white
+    borderLeft: `2px solid ${colorScheme.border}`,
+    borderBottom: `3px solid rgba(0, 0, 0, 0.4)`,
+    borderRight: `3px solid rgba(0, 0, 0, 0.3)`,
     boxShadow: `
       0 4px 8px ${colorScheme.shadow},
       0 2px 4px rgba(0, 0, 0, 0.3),
@@ -356,9 +262,6 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
     width: '100%',
     position: 'relative',
     boxSizing: 'border-box',
-    // Add smooth transitions for animated reordering
-    transition: 'transform 1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
-    transform: 'translateY(0)', // Base transform for animation
   };
 
   // Style for the slashed section that holds the percentage
@@ -375,7 +278,7 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
     justifyContent: 'flex-end',
     paddingRight: isMobile ? '6px' : '10px',
     zIndex: 2,
-    borderRadius: isMobile ? '0 4px 4px 0' : '0 6px 6px 0', // Restore rounded corners on right side
+    borderRadius: isMobile ? '0 4px 4px 0' : '0 6px 6px 0',
   };
 
   const textStyle = {
@@ -384,7 +287,7 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
     fontSize: isMobile ? '0.65rem' : (isSmallScreen ? '0.75rem' : '0.85rem'),
     letterSpacing: '0.5px',
     textShadow: isTopPlayer 
-      ? '0 0 6px rgba(99,102,241,0.6), 0 0 12px rgba(99,102,241,0.3)' // Clean indigo glow for top player
+      ? '-1px -1px 0 #B8860B, 1px -1px 0 #B8860B, -1px 1px 0 #B8860B, 1px 1px 0 #B8860B, 0 0 8px rgba(255,215,0,0.6), 0 0 12px rgba(255,140,0,0.3)'
       : '-1px -1px 0 #0A1929, 1px -1px 0 #0A1929, -1px 1px 0 #0A1929, 1px 1px 0 #0A1929, 0 0 6px rgba(0,212,255,0.4), 0 0 10px rgba(0,255,136,0.2)',
     marginRight: isMobile ? '4px' : '8px',
     whiteSpace: 'nowrap',
@@ -397,7 +300,7 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
     flexShrink: 1,
     minWidth: 0,
     textShadow: isTopPlayer 
-      ? '0 0 6px rgba(99,102,241,0.6), 0 0 12px rgba(99,102,241,0.3)' // Clean indigo glow for top player
+      ? '-1px -1px 0 #B8860B, 1px -1px 0 #B8860B, -1px 1px 0 #B8860B, 1px 1px 0 #B8860B, 0 0 10px rgba(255,215,0,0.7), 0 0 15px rgba(255,140,0,0.4)'
       : '-1px -1px 0 #0A1929, 1px -1px 0 #0A1929, -1px 1px 0 #0A1929, 1px 1px 0 #0A1929, 0 0 8px rgba(0,212,255,0.5), 0 0 12px rgba(0,255,136,0.3)',
   };
 
@@ -409,7 +312,7 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
     alignItems: 'center',
     gap: '6px',
     textShadow: isTopPlayer 
-      ? '0 0 6px rgba(99,102,241,0.6), 0 0 12px rgba(99,102,241,0.3)' // Clean indigo glow for top player
+      ? '-1px -1px 0 #B8860B, 1px -1px 0 #B8860B, -1px 1px 0 #B8860B, 1px 1px 0 #B8860B, 0 0 8px rgba(255,215,0,0.6), 0 0 12px rgba(255,140,0,0.3)'
       : '-1px -1px 0 #0A1929, 1px -1px 0 #0A1929, -1px 1px 0 #0A1929, 1px 1px 0 #0A1929, 0 0 6px rgba(0,212,255,0.4), 0 0 10px rgba(0,255,136,0.2)',
   };
 
@@ -427,7 +330,7 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
           style={{
             width: isMobile ? 14 : (isSmallScreen ? 18 : 20),
             height: isMobile ? 14 : (isSmallScreen ? 18 : 20),
-            borderRadius: '50%', // Restore circular avatar from reference
+            borderRadius: '50%',
             border: `2px solid ${colorScheme.border}`,
             boxShadow: `
               0 2px 4px rgba(0,0,0,0.4),
@@ -449,34 +352,29 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
       
       {/* Player profit - ONLY show on non-mobile */}
       {!isMobile && (
-        <div className="player-stats" style={{...statStyle, marginLeft: 'auto', marginRight: isSmallScreen ? '78px' : '88px'}}> {/* Increased margin from slash section */}
+        <div className="player-stats" style={{...statStyle, marginLeft: 'auto', marginRight: isSmallScreen ? '58px' : '68px'}}>
           <span className="player-profit" style={{ 
-            fontSize: isMobile ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.75rem'), // Match percentage text size
-            color: isTopPlayer 
-              ? (profitAmount >= 0 ? '#00FF88' : '#FF4444') // Green for positive, red for negative on purple (changed from cyan)
-              : (profitAmount >= 0 ? '#00FF88' : '#FF4444'), // Original colors for other rows
+            fontSize: textStyle.fontSize,
+            color: '#00FF88', // Brighter Nintendo-style green
             textShadow: isTopPlayer 
-              ? '0 0 6px rgba(99,102,241,0.6), 0 0 12px rgba(99,102,241,0.3)' // Clean indigo glow for both colors
-              : `-1px -1px 0 #0A1929, 1px -1px 0 #0A1929, -1px 1px 0 #0A1929, 1px 1px 0 #0A1929, 0 0 8px ${profitAmount >= 0 ? 'rgba(0,255,136,0.8)' : 'rgba(255,68,68,0.8)'}, 0 0 12px ${profitAmount >= 0 ? 'rgba(0,255,136,0.4)' : 'rgba(255,68,68,0.4)'}`,
+              ? '-1px -1px 0 #B8860B, 1px -1px 0 #B8860B, -1px 1px 0 #B8860B, 1px 1px 0 #B8860B, 0 0 8px rgba(255,215,0,0.6), 0 0 12px rgba(255,140,0,0.3)'
+              : '-1px -1px 0 #0A1929, 1px -1px 0 #0A1929, -1px 1px 0 #0A1929, 1px 1px 0 #0A1929, 0 0 8px rgba(0,255,136,0.8), 0 0 12px rgba(0,255,136,0.4)',
             fontWeight: '800',
-            fontFamily: 'Candal, sans-serif', // Match percentage font family
-            display: 'flex',
-            alignItems: 'center',
-            // Add smooth transitions for rolling number effect
-            transition: 'color 0.3s ease, text-shadow 0.3s ease',
           }}>
-            <img
-              src={player.tokenType === 'solana' ? solanaLogo : rugsLogo}
-              alt={player.tokenType === 'solana' ? 'Solana' : 'Rugs'}
-              width={isSmallScreen ? '9' : '11'}
-              height={isSmallScreen ? '9' : '11'}
-              style={{ 
-                marginRight: '3px', 
-                verticalAlign: 'middle', 
-                opacity: 0.95,
-                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))'
-              }}
-            />
+            {formattedProfit.startsWith("+") && (
+              <img
+                src={player.tokenType === 'solana' ? solanaLogo : rugsLogo}
+                alt={player.tokenType === 'solana' ? 'Solana' : 'Rugs'}
+                width={isSmallScreen ? '9' : '11'}
+                height={isSmallScreen ? '9' : '11'}
+                style={{ 
+                  marginRight: '3px', 
+                  verticalAlign: 'middle', 
+                  opacity: 0.95,
+                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))'
+                }}
+              />
+            )}
             {formattedProfit.replace("+", "")}
           </span>
         </div>
@@ -486,18 +384,13 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
       <div style={slashSectionStyle}>
         <span style={{ 
           fontSize: isMobile ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.75rem'),
-          color: player.currentPercent >= 0 ? '#00FF88' : '#FF4444', // Green for positive, red for negative
+          color: '#FFFFFF',
           textShadow: isTopPlayer 
-            ? (player.currentPercent >= 0 
-                ? '0 0 6px rgba(99,102,241,0.6), 0 0 12px rgba(99,102,241,0.3)' // Clean indigo glow for positive
-                : '0 0 6px rgba(99,102,241,0.6), 0 0 12px rgba(99,102,241,0.3)' // Clean indigo glow for negative
-              )
-            : `-1px -1px 0 #0A1929, 1px -1px 0 #0A1929, -1px 1px 0 #0A1929, 1px 1px 0 #0A1929, 0 0 8px ${player.currentPercent >= 0 ? 'rgba(0,255,136,0.8)' : 'rgba(255,68,68,0.8)'}, 0 0 12px ${player.currentPercent >= 0 ? 'rgba(0,255,136,0.4)' : 'rgba(255,68,68,0.4)'}`,
+            ? '-1px -1px 0 #B8860B, 1px -1px 0 #B8860B, -1px 1px 0 #B8860B, 1px 1px 0 #B8860B, 0 0 8px rgba(255,215,0,0.6), 0 0 12px rgba(255,140,0,0.3)'
+            : '-1px -1px 0 #0A1929, 1px -1px 0 #0A1929, -1px 1px 0 #0A1929, 1px 1px 0 #0A1929, 0 0 6px rgba(0,212,255,0.4), 0 0 10px rgba(0,255,136,0.2)',
           fontWeight: '800',
           fontFamily: 'Candal, sans-serif',
           zIndex: 2,
-          // Add smooth transitions for rolling percentage effect
-          transition: 'color 0.3s ease, text-shadow 0.3s ease',
         }}>
           {formattedPercent}
         </span>
@@ -629,6 +522,98 @@ const TradeMarker = React.memo(({ trade, x, y, opacity = 1, candleX }) => {
   );
 });
 
+// Chart constants
+const CHART_HEIGHT = 400;
+const CHART_WIDTH = 800;
+const CANDLE_WIDTH = 20;
+const CANDLE_GAP = 6; // Back to 6 pixels
+const MIN_VALUE = 0.3; // Minimum fixed value
+const ABSOLUTE_MAX_VALUE = 50.0; // Theoretical maximum for calculations
+const LEADERBOARD_WIDTH = 420; // Reverted to original
+
+// Brighter, more contrasted grid line colors (top to bottom)
+const gridLineColors = [
+  "#FFFFFF", // white (top)
+  "#FFFFFF", // white
+  "#FFFFFF", // white
+  "#FFFFFF", // white (center)
+  "#FFFFFF", // white
+  "#FFFFFF", // white
+  "#FFFFFF"  // white (bottom)
+];
+
+// Add a ref to store the last used grid step
+let lastGridStep = 1;
+
+// Helper function to reset grid system
+function resetGridSystem() {
+  lastGridStep = 1;
+}
+
+// Dynamic grid line generation based on the current visible range
+function generateGridLines(maxValue) {
+  const min = MIN_VALUE;
+  const possibleSteps = [0.5, 1, 2, 5, 10, 20, 50, 100];
+  let step = lastGridStep;
+
+  // Calculate range and be more dynamic with line count
+  const range = maxValue - min;
+  
+  // More dynamic line count based on range
+  const maxAllowedLines = range > 20 ? 6 : (range > 10 ? 5 : 4);
+  const minAllowedLines = 3;
+  
+  // Find the best step with stronger hysteresis
+  let bestStep = step;
+  let bestCount = 1000;
+  
+  for (let i = 0; i < possibleSteps.length; i++) {
+    const s = possibleSteps[i];
+    const start = Math.ceil(min / s) * s;
+    const end = Math.floor(maxValue / s) * s;
+    const count = Math.floor((end - start) / s) + 1;
+    
+    if (count >= minAllowedLines && count <= maxAllowedLines) {
+      // Strong preference to keep current step (hysteresis)
+      if (s === step) {
+        bestStep = s;
+        bestCount = count;
+        break;
+      }
+      
+      // Only switch if current step is clearly problematic
+      const currentStepCount = Math.floor((Math.floor(maxValue / step) * step - Math.ceil(min / step) * step) / step) + 1;
+      if (currentStepCount > maxAllowedLines + 1 || currentStepCount < minAllowedLines) {
+        if (Math.abs(count - (maxAllowedLines + minAllowedLines) / 2) < Math.abs(bestCount - (maxAllowedLines + minAllowedLines) / 2)) {
+          bestStep = s;
+          bestCount = count;
+        }
+      }
+    }
+  }
+  
+  step = bestStep;
+  lastGridStep = step;
+
+  const start = Math.ceil(min / step) * step;
+  const end = Math.floor(maxValue / step) * step;  // Fixed: using step instead of s
+  const multipliers = [];
+  
+  // Generate grid lines with dynamic limit
+  for (let v = start; v <= end + 0.0001; v += step) {
+    if (multipliers.length >= maxAllowedLines) break;
+    multipliers.push(Number(v.toFixed(4)));
+  }
+
+  // Always include 1.0x if it's in range and we have space
+  if (1.0 >= start && 1.0 <= end && !multipliers.includes(1.0) && multipliers.length < maxAllowedLines) {
+    multipliers.push(1.0);
+    multipliers.sort((a, b) => a - b);
+  }
+
+  return multipliers;
+}
+
 function GameGraph() {
   const [chartData, setChartData] = useState(initialMockChartData);
   const [currentMultiplier, setCurrentMultiplier] = useState(1.0);
@@ -641,10 +626,6 @@ function GameGraph() {
   
   // Add dynamic player data state
   const [playersData, setPlayersData] = useState(initialPlayerData);
-  
-  // Add state for animated player values (rolling numbers)
-  const [animatedPlayerValues, setAnimatedPlayerValues] = useState({});
-  const playerAnimationRefs = useRef({});
   
   const isDraggingRef = useRef(false);
   const startYRef = useRef(0);
@@ -973,6 +954,50 @@ function GameGraph() {
     }
   }, [gameState]);
   
+  // Function to update player percentages during active game
+  const updatePlayerPercentages = useCallback(() => {
+    if (gameState !== 'active') return;
+    
+    setPlayersData(prevPlayers => {
+      return prevPlayers.map(player => ({
+        ...player,
+        currentPercent: generateFluctuatingPercent(player.currentPercent, currentMultiplier)
+      })).sort((a, b) => b.currentPercent - a.currentPercent); // Sort by percentage descending
+    });
+  }, [gameState, currentMultiplier]);
+
+  // Function to reset player data for presale
+  const resetPlayerData = useCallback(() => {
+    setPlayersData(prevPlayers => {
+      return prevPlayers.map(player => ({
+        ...player,
+        currentPercent: 0,
+        baseProfit: 0
+      }));
+    });
+  }, []);
+  
+  // Handle player percentage updates during active game
+  useEffect(() => {
+    let playerUpdateInterval = null;
+    
+    if (gameState === 'active') {
+      // Update player percentages every 1 second during active game
+      playerUpdateInterval = setInterval(() => {
+        updatePlayerPercentages();
+      }, 1000);
+    } else if (gameState === 'presale') {
+      // Reset player data when entering presale
+      resetPlayerData();
+    }
+    
+    return () => {
+      if (playerUpdateInterval) {
+        clearInterval(playerUpdateInterval);
+      }
+    };
+  }, [gameState, updatePlayerPercentages, resetPlayerData]);
+  
   // Function to start test simulation
   const startTestSimulation = () => {
     setIsTestRunning(true);
@@ -987,13 +1012,6 @@ function GameGraph() {
     setCurrentTick(0);
     absoluteCandleIndexRef.current = 0;
     
-    // Reset player data to initial state
-    setPlayersData(initialPlayerData.map(player => ({
-      ...player,
-      baseAmount: 0.1 + Math.random() * 0.9, // Randomize base amounts again
-      currentPercent: 0
-    })));
-    
     // Reset grid system
     resetGridSystem();
     
@@ -1001,7 +1019,7 @@ function GameGraph() {
     setGameState('presale');
     setCountdownTime(5);
   };
-  
+   
   // Function to start generating candle data
   const startCandleGeneration = () => {
     if (testIntervalRef.current) return;
@@ -1018,13 +1036,9 @@ function GameGraph() {
     
     setChartData([initialCandle]);
     
-    // IMMEDIATELY set the current multiplier to ensure player updates start right away
-    setCurrentMultiplier(1.0);
-    
     testIntervalRef.current = setInterval(() => {
       setCurrentTick(prevTick => {
         const newTick = prevTick + 1;
-        
         
         setChartData(prevData => {
           // Ensure we have data to work with
@@ -1091,7 +1105,7 @@ function GameGraph() {
       });
     }, 250);
   };
-  
+   
   // Handle rugging the game
   const rugGame = () => {
     // If already rugged, do nothing
@@ -1104,14 +1118,6 @@ function GameGraph() {
       clearInterval(testIntervalRef.current);
       testIntervalRef.current = null;
     }
-    
-    // Set all players to large negative percentages (they lost everything)
-    setPlayersData(prevPlayers => {
-      return prevPlayers.map(player => ({
-        ...player,
-        currentPercent: -80 - Math.random() * 20 // Between -80% and -100%
-      })).sort((a, b) => b.currentPercent - a.currentPercent); // Sort by percentage descending (least negative first)
-    });
     
     // Create a final crash candle
     setChartData(prevData => {
@@ -1136,7 +1142,7 @@ function GameGraph() {
     setGameState('rugged');
     setCurrentMultiplier(0);
   };
-  
+   
   // Function to stop test
   const stopTestSimulation = () => {
     // Clean up intervals
@@ -1158,7 +1164,7 @@ function GameGraph() {
     setChartData([]);
     setActiveTradesMap({});
   };
-  
+   
   // Function to handle websocket messages (simulated)
   const handleWebSocketMessage = (message) => {
     if (!message) return;
@@ -1231,7 +1237,7 @@ function GameGraph() {
       }
     }
   };
-  
+   
   // Test function to simulate websocket messages
   const testGameFlow = () => {
     console.log('Starting test game flow');
@@ -1616,15 +1622,6 @@ function GameGraph() {
     };
   }, [currentMultiplier, displayMultiplier, gameState]);
 
-  // Additional effect to immediately respond to multiplier changes during active game
-  useEffect(() => {
-    if (gameState === 'active' && currentMultiplier !== 1.0) {
-      // Immediately update player data when multiplier changes during active game
-      const updatedData = generateFakeLeaderboardData(currentMultiplier, true);
-      setPlayersData(updatedData);
-    }
-  }, [currentMultiplier, gameState]);
-
   // Add state for grid line fade-in
   const [gridLinesVisible, setGridLinesVisible] = useState(false);
 
@@ -1652,206 +1649,11 @@ function GameGraph() {
     setPlayersData(prevPlayers => {
       return prevPlayers.map(player => ({
         ...player,
-        currentPercent: 0
+        currentPercent: 0,
+        baseProfit: 0
       }));
     });
   }, []);
-  
-  // Handle player percentage updates during active game
-  useEffect(() => {
-    let playerUpdateInterval = null;
-    
-    if (gameState === 'active') {
-      // IMMEDIATELY update player data when game becomes active
-      const immediateData = generateFakeLeaderboardData(currentMultiplier, true);
-      setPlayersData(immediateData);
-      
-      // Then start the interval for continuous updates with rolling values
-      playerUpdateInterval = setInterval(() => {
-        // Generate new target values but keep players in same positions
-        const newTargetData = generateFakeLeaderboardData(currentMultiplier, true);
-        
-        // Update players with new target values while maintaining order
-        setPlayersData(prev => prev.map((player, index) => {
-          const targetPlayer = newTargetData[index]; // Keep same position
-          return {
-            ...player,
-            targetPercent: targetPlayer.currentPercent,
-            targetValue: targetPlayer.currentValue,
-            targetProfit: targetPlayer.profit,
-            targetFormattedPercent: targetPlayer.percent
-          };
-        }));
-      }, 500); // Reduced frequency for smoother rolling
-    } else if (gameState === 'presale') {
-      // Reset player data when entering presale
-      const resetData = generateFakeLeaderboardData(1.0, false);
-      setPlayersData(resetData);
-    } else if (gameState === 'rugged') {
-      // Set all players to large negative percentages (they lost everything)
-      setPlayersData(prevPlayers => {
-        return prevPlayers.map(player => {
-          const ruggedPercent = -80 - Math.random() * 20; // Between -80% and -100%
-          const currentValue = player.baseAmount * (1 + ruggedPercent / 100);
-          const ruggedProfit = currentValue - player.baseAmount;
-          const formattedProfit = `${ruggedProfit.toFixed(3)}`;
-          const formattedPercent = formatPercentage(ruggedPercent);
-          
-          return {
-            ...player,
-            currentPercent: ruggedPercent,
-            currentValue: currentValue,
-            profit: formattedProfit,
-            percent: formattedPercent
-          };
-        }); // No sorting - keep players in same positions
-      });
-    }
-    
-    return () => {
-      if (playerUpdateInterval) {
-        clearInterval(playerUpdateInterval);
-      }
-    };
-  }, [gameState, currentMultiplier]);
-
-  // Rolling animation effect for player values (like the multiplier animation)
-  useEffect(() => {
-    if (gameState !== 'active') return;
-    
-    playersData.forEach((player, index) => {
-      const playerId = `${player.address}-${index}`;
-      
-      // Clean up existing animation
-      if (playerAnimationRefs.current[playerId]) {
-        cancelAnimationFrame(playerAnimationRefs.current[playerId]);
-      }
-      
-      // Get current animated values or initialize them
-      const currentAnimated = animatedPlayerValues[playerId] || {
-        percent: player.currentPercent,
-        profit: parseFloat(player.profit?.replace('+', '') || '0')
-      };
-      
-      // Target values from the player data
-      const targetPercent = player.currentPercent;
-      const targetProfit = parseFloat(player.profit?.replace('+', '') || '0');
-      
-      // Skip animation if values are very close
-      if (Math.abs(currentAnimated.percent - targetPercent) < 0.001 && 
-          Math.abs(currentAnimated.profit - targetProfit) < 0.001) {
-        return;
-      }
-      
-      // Easing function for smooth animation
-      const easeOutExpo = (t) => {
-        return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-      };
-      
-      // Animation function
-      const animate = () => {
-        setAnimatedPlayerValues(prev => {
-          const current = prev[playerId] || currentAnimated;
-          
-          // Calculate steps with easing
-          const percentDiff = targetPercent - current.percent;
-          const profitDiff = targetProfit - current.profit;
-          
-          const step = 0.15; // Animation speed
-          const percentStep = percentDiff * step;
-          const profitStep = profitDiff * step;
-          
-          const easedPercentStep = percentStep * easeOutExpo(Math.abs(percentStep) / Math.abs(percentDiff || 1));
-          const easedProfitStep = profitStep * easeOutExpo(Math.abs(profitStep) / Math.abs(profitDiff || 1));
-          
-          // Check if we're close enough to snap to target
-          if (Math.abs(percentDiff) < 0.001 && Math.abs(profitDiff) < 0.001) {
-            playerAnimationRefs.current[playerId] = null;
-            return {
-              ...prev,
-              [playerId]: {
-                percent: targetPercent,
-                profit: targetProfit
-              }
-            };
-          }
-          
-          // Continue animation
-          const newValues = {
-            percent: current.percent + easedPercentStep,
-            profit: current.profit + easedProfitStep
-          };
-          
-          playerAnimationRefs.current[playerId] = requestAnimationFrame(animate);
-          
-          return {
-            ...prev,
-            [playerId]: newValues
-          };
-        });
-      };
-      
-      // Start animation
-      playerAnimationRefs.current[playerId] = requestAnimationFrame(animate);
-    });
-    
-    // Cleanup function
-    return () => {
-      Object.values(playerAnimationRefs.current).forEach(animationId => {
-        if (animationId) cancelAnimationFrame(animationId);
-      });
-    };
-  }, [playersData, gameState]);
-
-  // Helper function to generate fake dynamic leaderboard data for demo
-  const generateFakeLeaderboardData = (chartMultiplier, isActive = false) => {
-    if (!isActive) {
-      // During presale or inactive, show all zeros but keep base amounts
-      return playersData.map(player => ({
-        ...player,
-        currentPercent: 0,
-        currentValue: player.baseAmount, // Show starting value
-        profit: "0.000",
-        percent: "0.0%"
-      }));
-    }
-    
-    // Calculate the percentage change from the 1.0x baseline
-    const percentageChange = (chartMultiplier - 1.0) * 100;
-    
-    console.log('DEBUG - Chart Multiplier:', chartMultiplier, 'Percentage Change:', percentageChange);
-    
-    const updatedPlayers = playersData.map((player, index) => {
-      // Each player's percentage should be based on chart movement with small individual variation
-      // Add small individual variation based on player index for consistent "personality"
-      const playerSeed = (index + 1) * 0.1; // Each player gets a unique seed
-      
-      // Reduce variation significantly to minimize flashing
-      const timeVariation = Math.sin(Date.now() * 0.001 + playerSeed) * 0.8; // Reduced from ±2% to ±0.8% and slower time
-      const randomVariation = (Math.random() - 0.5) * 0.5; // Small random variation for realism
-      const baseVariation = timeVariation + randomVariation;
-      const playerPercent = percentageChange + baseVariation;
-      
-      // Calculate current value: baseAmount * (1 + percentageChange/100)
-      const currentValue = player.baseAmount * (1 + playerPercent / 100);
-      
-      // Calculate profit amount (difference from base amount)
-      const profitAmount = currentValue - player.baseAmount;
-      const formattedProfit = profitAmount === 0 ? "0.000" : (profitAmount > 0 ? `+${profitAmount.toFixed(3)}` : `${profitAmount.toFixed(3)}`);
-      const formattedPercent = formatPercentage(playerPercent);
-      
-      return {
-        ...player,
-        currentPercent: playerPercent,
-        currentValue: currentValue,
-        profit: formattedProfit,
-        percent: formattedPercent
-      };
-    });
-    
-    // Always maintain the same order - no sorting
-    return updatedPlayers;
-  };
 
   return (
     <div className="app-container">
@@ -2527,7 +2329,7 @@ function GameGraph() {
                 }}
               >
                 {playersData.map((player, idx) => (
-                  <PlayerBox key={`${player.address}-${player.name}`} player={player} index={idx} animatedValues={animatedPlayerValues} />
+                  <PlayerBox key={idx} player={player} index={idx} />
                 ))}
               </div>
               {/* Fade overlay absolutely positioned at the bottom of the container */}
