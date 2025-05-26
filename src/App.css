@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chewy&display=swap');
 
 html, body, #root {
   margin: 0;
@@ -159,6 +160,55 @@ html, body, #root {
   background: transparent;
   overflow: hidden;
   padding-right: 30px;
+  transition: background 0.5s ease-in-out;
+}
+
+/* Fire gradient background for rug stage */
+.chart-container.rugged::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(212, 11, 0, 0.1) 30%, rgba(255, 69, 0, 0.3) 50%, rgba(255, 107, 0, 0.5) 70%, rgba(255, 140, 0, 0.7) 85%, rgba(255, 226, 42, 0.8) 100%);
+  animation: fireIntensity 2s ease-in-out infinite alternate;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* RUGGED text overlay */
+.chart-container.rugged::after {
+  content: 'RUGGED!';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  font-family: 'Chewy', cursive;
+  font-size: clamp(50px, 10vw, 140px);
+  background: linear-gradient(45deg, #d40b00 0%, #ffe22a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 
+    0 0 10px rgba(212, 11, 0, 0.8),
+    0 0 20px rgba(255, 226, 42, 0.6),
+    0 0 30px rgba(212, 11, 0, 0.4);
+  z-index: -2;
+  pointer-events: none;
+  letter-spacing: 0.1em;
+  font-weight: 400;
+}
+
+@keyframes fireIntensity {
+  0% {
+    background: linear-gradient(180deg, transparent 0%, rgba(212, 11, 0, 0.1) 30%, rgba(255, 69, 0, 0.3) 50%, rgba(255, 107, 0, 0.5) 70%, rgba(255, 140, 0, 0.7) 85%, rgba(255, 226, 42, 0.8) 100%);
+    filter: brightness(1) saturate(1.2);
+  }
+  100% {
+    background: linear-gradient(180deg, transparent 0%, rgba(179, 9, 0, 0.15) 30%, rgba(255, 51, 0, 0.35) 50%, rgba(255, 85, 0, 0.55) 70%, rgba(255, 119, 0, 0.75) 85%, rgba(255, 215, 0, 0.85) 100%);
+    filter: brightness(1.2) saturate(1.5);
+  }
 }
 
 .chart-area {
@@ -575,6 +625,10 @@ line.current-price-indicator {
     width: 12px;
     height: 12px;
   }
+  
+  .chart-container.rugged::after {
+    font-size: clamp(45px, 9vw, 100px);
+  }
 }
 
 @media (max-width: 768px) {
@@ -626,6 +680,10 @@ line.current-price-indicator {
   .player-stats img, .player-stats svg {
     width: 10px;
     height: 10px;
+  }
+  
+  .chart-container.rugged::after {
+    font-size: clamp(40px, 8vw, 85px);
   }
 }
 
@@ -683,6 +741,13 @@ line.current-price-indicator {
   .player-stats img, .player-stats svg {
     width: 9px;
     height: 9px;
+  }
+  
+  .chart-container.rugged::after {
+    font-size: clamp(35px, 7vw, 75px);
+    letter-spacing: 0.05em;
+    top: 25%;
+    transform: translate(-50%, -50%) rotate(-10deg);
   }
 }
 
@@ -752,6 +817,13 @@ line.current-price-indicator {
   .player-stats img, .player-stats svg {
     width: 7px;
     height: 7px;
+  }
+  
+  .chart-container.rugged::after {
+    font-size: clamp(30px, 6vw, 65px);
+    letter-spacing: 0.05em;
+    top: 20%;
+    transform: translate(-50%, -50%) rotate(-10deg);
   }
 }
 

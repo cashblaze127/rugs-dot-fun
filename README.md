@@ -15,3 +15,4 @@ If you are developing a production application, we recommend using TypeScript wi
 # rugs.fun-test
 # rugs.fun-test
 # rugs.fun-final
+# rugs.fun.final

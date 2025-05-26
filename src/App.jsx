@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import "./App.css";
 import createBlockies from "ethereum-blockies-base64";
-import ruggedSvg from "./assets/RUGGED.svg"; // Import the RUGGED.svg file from assets
 import solanaLogo from "./assets/solanaLogoMark.svg"; // Import Solana logo
 import rugsLogo from "./assets/rugslogo.svg"; // Import Rugs logo
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
@@ -182,6 +181,7 @@ function generateGridLines(maxValue) {
   
   for (let i = 0; i < possibleSteps.length; i++) {
     const s = possibleSteps[i];
+    // Fixed start calculation to allow grid lines below 1x
     const start = Math.ceil(min / s) * s;
     const end = Math.floor(maxValue / s) * s;
     const count = Math.floor((end - start) / s) + 1;
@@ -195,7 +195,8 @@ function generateGridLines(maxValue) {
       }
       
       // Only switch if current step is clearly problematic
-      const currentStepCount = Math.floor((Math.floor(maxValue / step) * step - Math.ceil(min / step) * step) / step) + 1;
+      const currentStepStart = Math.ceil(min / step) * step;
+      const currentStepCount = Math.floor((Math.floor(maxValue / step) * step - currentStepStart) / step) + 1;
       if (currentStepCount > maxAllowedLines + 1 || currentStepCount < minAllowedLines) {
         if (Math.abs(count - (maxAllowedLines + minAllowedLines) / 2) < Math.abs(bestCount - (maxAllowedLines + minAllowedLines) / 2)) {
           bestStep = s;
@@ -208,8 +209,9 @@ function generateGridLines(maxValue) {
   step = bestStep;
   lastGridStep = step;
 
+  // Use the corrected start calculation
   const start = Math.ceil(min / step) * step;
-  const end = Math.floor(maxValue / step) * step;  // Fixed: using step instead of s
+  const end = Math.floor(maxValue / step) * step;
   const multipliers = [];
   
   // Generate grid lines with dynamic limit
@@ -368,7 +370,10 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
     top: '0',
     bottom: '0',
     width: isMobile ? '50px' : (isSmallScreen ? '58px' : '68px'), // Smaller on mobile
-    background: colorScheme.darker,
+    // Strong gradients like the candles instead of radial glow
+    background: player.currentPercent >= 0 
+      ? 'linear-gradient(135deg, #00dd00 0%, #00cc00 25%, #00bb00 50%, #00aa00 75%, #009900 100%)'
+      : 'linear-gradient(135deg, #F44336 0%, #D32F2F 25%, #C62828 50%, #B71C1C 75%, #8B1A1A 100%)',
     clipPath: isMobile ? 'polygon(8px 0%, 100% 0%, 100% 100%, 0% 100%)' : 'polygon(12px 0%, 100% 0%, 100% 100%, 0% 100%)',
     display: 'flex',
     alignItems: 'center',
@@ -376,12 +381,20 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
     paddingRight: isMobile ? '6px' : '10px',
     zIndex: 2,
     borderRadius: isMobile ? '0 4px 4px 0' : '0 6px 6px 0', // Restore rounded corners on right side
+    // Clean shadow without glow
+    boxShadow: player.currentPercent >= 0 
+      ? '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+      : '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+    // Smooth Nintendo-style transitions for value changes
+    transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+    // Add subtle Nintendo-style hover effect
+    cursor: 'default',
   };
 
   const textStyle = {
-    fontFamily: 'Candal, sans-serif',
+    fontFamily: 'Chewy, cursive',
     color: '#FFFFFF',
-    fontSize: isMobile ? '0.65rem' : (isSmallScreen ? '0.75rem' : '0.85rem'),
+    fontSize: isMobile ? '0.75rem' : (isSmallScreen ? '0.85rem' : '0.95rem'),
     letterSpacing: '0.5px',
     textShadow: isTopPlayer 
       ? '0 0 6px rgba(99,102,241,0.6), 0 0 12px rgba(99,102,241,0.3)' // Clean indigo glow for top player
@@ -459,7 +472,7 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
               ? '0 0 6px rgba(99,102,241,0.6), 0 0 12px rgba(99,102,241,0.3)' // Clean indigo glow for both colors
               : `-1px -1px 0 #0A1929, 1px -1px 0 #0A1929, -1px 1px 0 #0A1929, 1px 1px 0 #0A1929, 0 0 8px ${profitAmount >= 0 ? 'rgba(0,255,136,0.8)' : 'rgba(255,68,68,0.8)'}, 0 0 12px ${profitAmount >= 0 ? 'rgba(0,255,136,0.4)' : 'rgba(255,68,68,0.4)'}`,
             fontWeight: '800',
-            fontFamily: 'Candal, sans-serif', // Match percentage font family
+            fontFamily: 'Chewy, cursive', // Changed from Candal to Chewy for consistency
             display: 'flex',
             alignItems: 'center',
             // Add smooth transitions for rolling number effect
@@ -486,18 +499,13 @@ const PlayerBox = React.memo(({ player, index, animatedValues }) => {
       <div style={slashSectionStyle}>
         <span style={{ 
           fontSize: isMobile ? '0.6rem' : (isSmallScreen ? '0.7rem' : '0.75rem'),
-          color: player.currentPercent >= 0 ? '#00FF88' : '#FF4444', // Green for positive, red for negative
-          textShadow: isTopPlayer 
-            ? (player.currentPercent >= 0 
-                ? '0 0 6px rgba(99,102,241,0.6), 0 0 12px rgba(99,102,241,0.3)' // Clean indigo glow for positive
-                : '0 0 6px rgba(99,102,241,0.6), 0 0 12px rgba(99,102,241,0.3)' // Clean indigo glow for negative
-              )
-            : `-1px -1px 0 #0A1929, 1px -1px 0 #0A1929, -1px 1px 0 #0A1929, 1px 1px 0 #0A1929, 0 0 8px ${player.currentPercent >= 0 ? 'rgba(0,255,136,0.8)' : 'rgba(255,68,68,0.8)'}, 0 0 12px ${player.currentPercent >= 0 ? 'rgba(0,255,136,0.4)' : 'rgba(255,68,68,0.4)'}`,
+          color: '#FFFFFF', // White text for both green and red backgrounds
+          textShadow: '0 1px 2px rgba(0, 0, 0, 0.8), 0 0 4px rgba(0, 0, 0, 0.4)', // Clean shadow for depth
           fontWeight: '800',
-          fontFamily: 'Candal, sans-serif',
+          fontFamily: 'Chewy, cursive', // Changed from Candal to Chewy for consistency
           zIndex: 2,
-          // Add smooth transitions for rolling percentage effect
-          transition: 'color 0.3s ease, text-shadow 0.3s ease',
+          // Add smooth transitions for rolling percentage effect with Nintendo-style easing
+          transition: 'color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), text-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         }}>
           {formattedPercent}
         </span>
@@ -714,6 +722,12 @@ function GameGraph() {
   
   // Add a ref to track the absolute candle index from the start of simulation
   const absoluteCandleIndexRef = useRef(0);
+  
+  // Add a ref to track when we switch to a new candle for animation reset
+  const lastCandleCountRef = useRef(0);
+  
+  // Add a ref to track the current candle's open price for proper wick reset
+  const currentCandleOpenRef = useRef(null);
   
   const previousMultiplierRef = useRef(currentMultiplier);
   const lastTradeTimeRef = useRef(0);
@@ -987,6 +1001,12 @@ function GameGraph() {
     setCurrentTick(0);
     absoluteCandleIndexRef.current = 0;
     
+    // Reset animated price values
+    setAnimatedPrice(null);
+    setAnimatedHigh(null);
+    setAnimatedLow(null);
+    setDisplayMultiplier(1.0);
+    
     // Reset player data to initial state
     setPlayersData(initialPlayerData.map(player => ({
       ...player,
@@ -1151,12 +1171,46 @@ function GameGraph() {
       countdownIntervalRef.current = null;
     }
     
+    // Clean up all animation frames
+    if (priceAnimationRef.current) {
+      cancelAnimationFrame(priceAnimationRef.current);
+      priceAnimationRef.current = null;
+    }
+    
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    
+    if (scalingAnimationRef.current) {
+      cancelAnimationFrame(scalingAnimationRef.current);
+      scalingAnimationRef.current = null;
+    }
+    
+    if (gridUpdateTimeoutRef.current) {
+      clearTimeout(gridUpdateTimeoutRef.current);
+      gridUpdateTimeoutRef.current = null;
+    }
+    
     // Reset state
     setIsTestRunning(false);
     setGameState('inactive');
     setCountdownTime(5);
     setChartData([]);
     setActiveTradesMap({});
+    
+    // Reset view and animation states
+    setVisibleMaxValue(2.0);
+    setCurrentMultiplier(1.0);
+    setDisplayMultiplier(1.0);
+    setAnimatedPrice(null);
+    setAnimatedHigh(null);
+    setAnimatedLow(null);
+    setIsScaling(false);
+    setStableGridLines([]);
+    
+    // Reset grid system
+    resetGridSystem();
   };
   
   // Function to handle websocket messages (simulated)
@@ -1208,6 +1262,28 @@ function GameGraph() {
       // Game state update
       if (message.state === 'presale') {
         console.log('Game entering presale state');
+        
+        // Clean up any ongoing animations first
+        if (scalingAnimationRef.current) {
+          cancelAnimationFrame(scalingAnimationRef.current);
+          scalingAnimationRef.current = null;
+        }
+        
+        if (gridUpdateTimeoutRef.current) {
+          clearTimeout(gridUpdateTimeoutRef.current);
+          gridUpdateTimeoutRef.current = null;
+        }
+        
+        if (priceAnimationRef.current) {
+          cancelAnimationFrame(priceAnimationRef.current);
+          priceAnimationRef.current = null;
+        }
+        
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+        
         setGameState('presale');
         setCountdownTime(message.countdown || 5);
         
@@ -1220,6 +1296,20 @@ function GameGraph() {
         
         // Reset grid system
         resetGridSystem();
+        
+        // Reset view scale to initial state
+        setVisibleMaxValue(2.0);
+        setCurrentMultiplier(1.0);
+        setDisplayMultiplier(1.0);
+        
+        // Reset animated price values
+        setAnimatedPrice(null);
+        setAnimatedHigh(null);
+        setAnimatedLow(null);
+        
+        // Reset scaling state
+        setIsScaling(false);
+        setStableGridLines([]);
       } 
       else if (message.state === 'active') {
         console.log('Game now active');
@@ -1399,7 +1489,7 @@ function GameGraph() {
           gridUpdateTimeoutRef.current = setTimeout(() => {
             setIsScaling(false);
             // Grid lines will update on next render cycle
-          }, 30); // Reduced delay
+          }, 50); // Increased from 30ms to 50ms for smoother grid line transitions
         }
       };
       scalingAnimationRef.current = requestAnimationFrame(animate);
@@ -1430,18 +1520,27 @@ function GameGraph() {
       low: actualLow
     };
     
+    // Check if we're working with a new candle and reset animated high/low appropriately
+    const currentCandle = chartData[chartData.length - 1];
+    if (currentCandle && currentCandleOpenRef.current !== currentCandle.open) {
+      // We're working with a new candle - reset animated high/low to the candle's open price
+      currentCandleOpenRef.current = currentCandle.open;
+      setAnimatedHigh(currentCandle.open);
+      setAnimatedLow(currentCandle.open);
+    }
+    
     // Initialize animated values if needed
     if (animatedPrice === null || animatedHigh === null || animatedLow === null) {
       setAnimatedPrice(actualPrice);
-      setAnimatedHigh(actualHigh);
-      setAnimatedLow(actualLow);
+      // For proper candlestick behavior, high and low should start at current price
+      setAnimatedHigh(actualPrice);
+      setAnimatedLow(actualPrice);
       return;
     }
     
-    // Skip animation if the difference is negligible
-    if (Math.abs(animatedPrice - actualPrice) < 0.0001 &&
-        Math.abs(animatedHigh - actualHigh) < 0.0001 &&
-        Math.abs(animatedLow - actualLow) < 0.0001) {
+    // Skip animation if the close price difference is negligible
+    // Note: We don't check high/low since they only extend based on current price
+    if (Math.abs(animatedPrice - actualPrice) < 0.0001) {
       return;
     }
     
@@ -1475,42 +1574,43 @@ function GameGraph() {
         return prev + easedStep;
       });
       
-      // Update high price with easing
+      // Update high price with easing - only extend upward, never retract
       setAnimatedHigh(prev => {
         if (prev === null || !actualPriceRef.current) return prev;
         
-        const diff = actualPriceRef.current.high - prev;
-        const step = diff * 0.15;
-        const easedStep = step * easeOutExpo(Math.abs(step) / Math.abs(diff));
-        
-        if (Math.abs(diff) < 0.0001) {
-          return actualPriceRef.current.high;
+        // Only animate if the current price is higher than our animated high
+        if (actualPriceRef.current.close > prev) {
+          const diff = actualPriceRef.current.close - prev;
+          const step = diff * 0.15;
+          const easedStep = step * easeOutExpo(Math.abs(step) / Math.abs(diff));
+          
+          return prev + easedStep;
         }
         
-        return prev + easedStep;
+        // If current price is not higher, keep the existing high
+        return prev;
       });
       
-      // Update low price with easing
+      // Update low price with easing - only extend downward, never retract
       setAnimatedLow(prev => {
         if (prev === null || !actualPriceRef.current) return prev;
         
-        const diff = actualPriceRef.current.low - prev;
-        const step = diff * 0.15;
-        const easedStep = step * easeOutExpo(Math.abs(step) / Math.abs(diff));
-        
-        if (Math.abs(diff) < 0.0001) {
-          return actualPriceRef.current.low;
+        // Only animate if the current price is lower than our animated low
+        if (actualPriceRef.current.close < prev) {
+          const diff = actualPriceRef.current.close - prev;
+          const step = diff * 0.15;
+          const easedStep = step * easeOutExpo(Math.abs(step) / Math.abs(diff));
+          
+          return prev + easedStep;
         }
         
-        return prev + easedStep;
+        // If current price is not lower, keep the existing low
+        return prev;
       });
       
-      // Continue animation unless all values are close enough
-      if (
-        Math.abs(animatedPrice - actualPriceRef.current.close) < 0.0001 &&
-        Math.abs(animatedHigh - actualPriceRef.current.high) < 0.0001 &&
-        Math.abs(animatedLow - actualPriceRef.current.low) < 0.0001
-      ) {
+      // Continue animation unless close price is close enough
+      // Note: We don't check high/low convergence since they only extend, never retract
+      if (Math.abs(animatedPrice - actualPriceRef.current.close) < 0.0001) {
         priceAnimationRef.current = null;
       } else {
         priceAnimationRef.current = requestAnimationFrame(animate);
@@ -1631,7 +1731,7 @@ function GameGraph() {
   // Fade in grid lines after mount or when gridLineMultipliers change
   useEffect(() => {
     setGridLinesVisible(false);
-    const timeout = setTimeout(() => setGridLinesVisible(true), 30);
+    const timeout = setTimeout(() => setGridLinesVisible(true), 50); // Increased from 30ms to 50ms for smoother transitions
     return () => clearTimeout(timeout);
   }, [gridLineMultipliers.length, visibleMaxValue]);
 
@@ -1887,9 +1987,6 @@ function GameGraph() {
                           strokeWidth={0.5}
                           opacity={0.5}
                           className="grid-fade-line"
-                          style={{
-                            transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1)'
-                          }}
                         />
                         <text
                           x={10}
@@ -1897,9 +1994,6 @@ function GameGraph() {
                           fill="#FFFFFF"
                           fontSize={14}
                           fontWeight="600"
-                          style={{
-                            transition: 'opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), y 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
-                          }}
                           className="grid-fade-line grid-line-label"
                         >
                           {y.toFixed(1)}x
@@ -1938,7 +2032,7 @@ function GameGraph() {
             
             
             {/* Chart area with candles */}
-            <div className="chart-container" 
+            <div className={`chart-container ${gameState === 'rugged' ? 'rugged' : ''}`}
                  ref={chartContainerRef}
                  style={{ overflow: 'visible', position: 'relative' }}>
               <div className="chart-area" style={{ overflow: 'visible' }}>
@@ -2112,9 +2206,6 @@ function GameGraph() {
                             strokeWidth={0.5}
                             opacity={0.5}
                             className="grid-fade-line"
-                            style={{
-                              transition: 'y1 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), y2 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                            }}
                           />
                         </g>
                       </CSSTransition>
@@ -2178,12 +2269,12 @@ function GameGraph() {
                         if (isLatestCandle && gameState === 'active') {
                           if (animatedPrice !== null) {
                             candleClose = animatedPrice;
-                            // Update high/low only if the new price exceeds current range
-                            if (animatedPrice > candleHigh) {
-                              candleHigh = animatedPrice;
+                            // Use animated high/low values for smooth wick growth
+                            if (animatedHigh !== null) {
+                              candleHigh = animatedHigh;
                             }
-                            if (animatedPrice < candleLow) {
-                              candleLow = animatedPrice;
+                            if (animatedLow !== null) {
+                              candleLow = animatedLow;
                             }
                           }
                         }
@@ -2245,19 +2336,7 @@ function GameGraph() {
                               />
                             </g>
                             
-                            {/* Add explosion effect for the rug candle */}
-                            {isRugCandle && (
-                              <circle
-                                cx={x + responsiveCandleWidth / 2}
-                                cy={bodyBottom}
-                                r={responsiveCandleWidth * 2}
-                                fill="url(#red-gradient)"
-                                opacity={0.4}
-                                style={{
-                                  filter: "drop-shadow(0 0 10px #FF0000)"
-                                }}
-                              />
-                            )}
+                            {/* Removed explosion effect for cleaner rug candle */}
                           </g>
                         );
                       })}
@@ -2420,7 +2499,6 @@ function GameGraph() {
                             fontSize={14}
                             fontWeight="600"
                             style={{
-                              transition: 'y 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                               filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8))'
                             }}
                             className="grid-fade-line grid-line-label"
@@ -2434,68 +2512,7 @@ function GameGraph() {
                   
                   {/* Add 'RUGGED' text in the chart SVG when rugged */}
                   {gameState === 'rugged' && (
-                    <g style={{ pointerEvents: 'none' }}>
-                      <defs>
-                        <filter id="rugged-glow" x="-20%" y="-20%" width="140%" height="140%">
-                          <feGaussianBlur stdDeviation="12" result="blur" />
-                          <feFlood floodColor="#FF0000" floodOpacity="0.8" result="red-glow" />
-                          <feComposite in="red-glow" in2="blur" operator="in" result="red-glow-blur" />
-                          <feMerge>
-                            <feMergeNode in="red-glow-blur" />
-                            <feMergeNode in="SourceGraphic" />
-                          </feMerge>
-                        </filter>
-                      </defs>
-                      
-                      {/* Positioned absolutely to cover the chart area */}
-                      <foreignObject 
-                        x="0" 
-                        y="0" 
-                        width="100%" 
-                        height="100%"
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          overflow: 'visible'
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            position: 'relative',
-                            transform: 'translateX(10%)' // Move right by 10% to account for the leaderboard on the right
-                          }}
-                        >
-                          <img
-                            src={ruggedSvg}
-                            alt="RUGGED"
-                            style={{
-                              width: windowWidth < 700 ? '80%' : '90%',
-                              maxWidth: '800px',
-                              filter: "drop-shadow(0 0 20px #FF0000)",
-                              animation: "pulse-rugged 1.5s infinite alternate",
-                              position: 'absolute',
-                              zIndex: 1000
-                            }}
-                          />
-                        </div>
-                      </foreignObject>
-                      
-                      {/* Add a pulsating animation in JSX style */}
-                      <style>
-                        {`
-                          @keyframes pulse-rugged {
-                            0% { opacity: 0.8; filter: drop-shadow(0 0 15px #FF0000); }
-                            100% { opacity: 1; filter: drop-shadow(0 0 30px #FF0000) drop-shadow(0 0 50px #FF3300); }
-                          }
-                        `}
-                      </style>
-                    </g>
+                    <></>
                   )}
                 </svg>
                 
@@ -2577,11 +2594,6 @@ function GameGraph() {
 }
 
 function PresaleOverlay({ countdownTime }) {
-  // Corner style constants
-  const cornerLength = 20;
-  const cornerThickness = 2.5;
-  const cornerColor = "#00F63E"; // Green neon color
-  
   // Format the countdown to always show one decimal place
   const formattedCountdown = typeof countdownTime === 'number' 
     ? countdownTime.toFixed(1) 
@@ -2615,7 +2627,7 @@ function PresaleOverlay({ countdownTime }) {
         zIndex: 20
       }}>
         <div style={{
-          fontFamily: 'monospace',
+          fontFamily: 'Chewy, cursive',
           fontWeight: 'bold',
           fontSize: '22px',
           color: 'white',
@@ -2641,7 +2653,7 @@ function PresaleOverlay({ countdownTime }) {
         justifyContent: 'center',
         flex: 1
       }}>
-        {/* Countdown with four corner design */}
+        {/* Countdown without corner design */}
         <div style={{
           position: 'relative',
           padding: countdownBoxPadding,
@@ -2652,21 +2664,6 @@ function PresaleOverlay({ countdownTime }) {
           justifyContent: 'center',
           alignItems: 'center'
         }}>
-          {/* Four corners */}
-          <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-            {/* Top-left corner */}
-            <line x1="0" y1={cornerLength} x2="0" y2="0" stroke={cornerColor} strokeWidth={cornerThickness} strokeLinecap="round" />
-            <line x1="0" y1="0" x2={cornerLength} y2="0" stroke={cornerColor} strokeWidth={cornerThickness} strokeLinecap="round" />
-            {/* Top-right corner */}
-            <line x1="100%" y1={cornerLength} x2="100%" y2="0" stroke={cornerColor} strokeWidth={cornerThickness} strokeLinecap="round" transform="translate(-1, 0)" />
-            <line x1="100%" y1="0" x2={`calc(100% - ${cornerLength}px)`} y2="0" stroke={cornerColor} strokeWidth={cornerThickness} strokeLinecap="round" />
-            {/* Bottom-right corner */}
-            <line x1="100%" y1={`calc(100% - ${cornerLength}px)`} x2="100%" y2="100%" stroke={cornerColor} strokeWidth={cornerThickness} strokeLinecap="round" transform="translate(-1, 0)" />
-            <line x1="100%" y1="100%" x2={`calc(100% - ${cornerLength}px)`} y2="100%" stroke={cornerColor} strokeWidth={cornerThickness} strokeLinecap="round" transform="translate(0, -1)" />
-            {/* Bottom-left corner */}
-            <line x1="0" y1={`calc(100% - ${cornerLength}px)`} x2="0" y2="100%" stroke={cornerColor} strokeWidth={cornerThickness} strokeLinecap="round" />
-            <line x1="0" y1="100%" x2={cornerLength} y2="100%" stroke={cornerColor} strokeWidth={cornerThickness} strokeLinecap="round" transform="translate(0, -1)" />
-          </svg>
           {/* Next round text inside the box */}
           <div style={{
             textAlign: 'center',
@@ -2678,10 +2675,10 @@ function PresaleOverlay({ countdownTime }) {
           }}>
             NEXT ROUND IN...
           </div>
-          {/* Countdown number with decimal */}
+          {/* Countdown number with decimal - using Chewy font */}
           <div style={{
             color: 'white',
-            fontFamily: 'monospace',
+            fontFamily: 'Chewy, cursive',
             fontSize: countdownFontSize,
             fontWeight: 'bold',
             zIndex: 1

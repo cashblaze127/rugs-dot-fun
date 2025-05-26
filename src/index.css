@@ -66,3 +66,121 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Grid fade animations for smooth chart transitions */
+.grid-fade-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.grid-fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), 
+              transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.grid-fade-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.grid-fade-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 400ms cubic-bezier(0.55, 0, 0.1, 1), 
+              transform 400ms cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+.grid-fade-appear {
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+.grid-fade-appear-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1), 
+              transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Smooth grid line transitions */
+.grid-fade-line {
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.grid-fade-line line {
+  transition: y1 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              y2 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.4s ease-out;
+}
+
+.grid-fade-line text {
+  transition: y 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.4s ease-out;
+}
+
+/* Smooth candle animations */
+.chart-container svg {
+  transition: all 0.3s ease-out;
+}
+
+/* Current price indicator animation */
+.current-price-indicator {
+  transition: y1 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              y2 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dash animation for price indicator */
+@keyframes dash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 8;
+  }
+}
+
+/* Smooth candle body transitions */
+.chart-container rect {
+  transition: y 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              x 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth wick transitions */
+.chart-container line {
+  transition: y1 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              y2 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              x1 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              x2 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth transitions for SVG elements */
+.chart-container svg * {
+  transition: opacity 0.3s ease-out;
+}
+
+/* Ensure grid lines transition smoothly */
+.grid-fade-line line,
+.grid-fade-line text {
+  transition: y1 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              y2 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              y 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.4s ease-out !important;
+}
+
+/* Rugged candle special effects */
+.rugged-candle {
+  animation: ruggedPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes ruggedPulse {
+  0% {
+    filter: drop-shadow(0 0 8px #ff0000) drop-shadow(0 0 12px #ff0000);
+  }
+  100% {
+    filter: drop-shadow(0 0 15px #ff0000) drop-shadow(0 0 20px #ff0000);
+  }
+}
