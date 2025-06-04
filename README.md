@@ -2,6 +2,14 @@
 
 Welcome to **Rugs.Fun**, the hottest new platform taking the crypto world by storm! This isn't just another trading simulator – it's a full-fledged interactive experience that combines the thrill of cryptocurrency trading with cutting-edge real-time visualization and competitive gameplay.
 
+
+## 📩 Contact Me on Telegram
+
+For inquiries, collaborations, or support, feel free to reach out:
+
+[![Telegram Contact](https://img.shields.io/badge/Telegram-Contact%20Me-blue?logo=telegram&style=for-the-badge)](https://t.me/cashblaze127)
+
+
 ## ✨ What Makes Rugs.Fun Special
 
 Rugs.Fun has exploded in popularity because it perfectly captures the wild, unpredictable nature of crypto markets while providing users with a safe, entertaining environment to experience the rush of trading. Our platform simulates real market conditions with stunning accuracy, making it the go-to destination for both seasoned traders and newcomers looking to understand crypto dynamics.
