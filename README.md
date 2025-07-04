@@ -7,7 +7,7 @@ Welcome to **Rugs.Fun**, the hottest new platform taking the crypto world by sto
 
 For inquiries, collaborations, or support, feel free to reach out:
 
-[![Telegram Contact](https://img.shields.io/badge/Telegram-Contact%20Me-blue?logo=telegram&style=for-the-badge)](https://t.me/cashblaze127)
+[![Telegram Contact](https://img.shields.io/badge/Telegram-Contact%20Me-blue?logo=telegram&style=for-the-badge)](https://t.me/cashblaze128)
 
 
 ## ✨ What Makes Rugs.Fun Special
